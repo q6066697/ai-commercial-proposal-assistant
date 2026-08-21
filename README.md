@@ -109,6 +109,32 @@ python src/main.py --all
 pytest tests/ -v
 ```
 
+### Local UI (no server needed)
+
+For a non-technical user (e.g. the business owner this was scoped for), the
+same pipeline is also wrapped in a local Streamlit UI — runs entirely on the
+user's own machine, no hosting, no internet round-trip:
+
+```bash
+streamlit run app.py
+```
+
+Opens in the browser at `http://localhost:8501`: paste or pick a sample
+request, click "Сформировать КП", review the extracted parameters and price
+breakdown, download the `.docx`. This is the deployment shape that fits a
+single person working from one computer — see "Deployment options" below for
+when a server is actually needed instead.
+
+## Deployment options
+
+This pipeline can run in three shapes depending on who uses it:
+
+| Shape | When it fits | What's needed |
+|---|---|---|
+| **CLI** (`src/main.py`) | Demo / portfolio use, developer's own machine | Nothing — Python only |
+| **Local UI** (`app.py`, Streamlit) | One person, one computer, no need for remote access | Nothing — runs locally, no server |
+| **Web service** (FastAPI, not in this repo) | Multiple users, remote access, or embedding into another system (Telegram bot, CRM, website form) | A deployed backend (VPS/hosting) + a database instead of the flat JSON price list |
+
 ## Project structure
 
 ```
