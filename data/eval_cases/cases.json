@@ -1,0 +1,42 @@
+[
+  {
+    "id": "case_001",
+    "text": "Просим предоставить коммерческое предложение на мойку фасада промышленного здания.\nУслуга: мойка фасада\nПлощадь фасада: 4200 м2\nВысота здания: до 18 метров\nМестоположение объекта: г. Минск",
+    "expected": {"service": "facade_cleaning", "quantity": 4200.0, "unit": "m2", "height_m": 18.0, "location": "Минск", "urgency": "standard"}
+  },
+  {
+    "id": "case_002",
+    "text": "Нужна покраска металлоконструкций складского комплекса. Услуга: покраска металлоконструкций. Площадь окраски: 900 м2. Высота объекта: до 25 метров. Местоположение: г. Гродно.",
+    "expected": {"service": "metal_structures_painting", "quantity": 900.0, "unit": "m2", "height_m": 25.0, "location": "Гродно", "urgency": "standard"}
+  },
+  {
+    "id": "case_003",
+    "text": "Здравствуйте, требуется герметизация межпанельных швов на жилом доме. Объём работ: 350 м.п. Высота здания: до 30 метров. Местоположение: г. Минск.",
+    "expected": {"service": "seam_sealing", "quantity": 350.0, "unit": "m", "height_m": 30.0, "location": "Минск", "urgency": "standard"}
+  },
+  {
+    "id": "case_004",
+    "text": "Срочно нужна мойка фасада, 1200 м2, г. Брест, как можно быстрее приступить к работам.",
+    "expected": {"service": "facade_cleaning", "quantity": 1200.0, "unit": "m2", "height_m": null, "location": "Брест", "urgency": "urgent_within_week"}
+  },
+  {
+    "id": "case_005",
+    "text": "Требуется окраска металлоконструкций ангара, высота до 15 метров, площадь примерно 600 м2.",
+    "expected": {"service": "metal_structures_painting", "quantity": 600.0, "unit": "m2", "height_m": 15.0, "location": null, "urgency": "standard"}
+  },
+  {
+    "id": "case_006",
+    "text": "Добрый день! Интересует facade cleaning для бизнес-центра, 3000 м2, height up to 20 meters, г. Витебск.",
+    "expected": {"service": "facade_cleaning", "quantity": 3000.0, "unit": "m2", "height_m": 20.0, "location": "Витебск", "urgency": "standard"}
+  },
+  {
+    "id": "case_007",
+    "text": "Просим прислать КП на озеленение территории склада, 500 м2.",
+    "expected": {"service": null, "quantity": null, "unit": null, "height_m": null, "location": null, "urgency": "standard"}
+  },
+  {
+    "id": "case_008",
+    "text": "Герметизация швов, 120 погонных метров, объект в г. Минск, высота 12 м, желательно в течение недели.",
+    "expected": {"service": "seam_sealing", "quantity": 120.0, "unit": "m", "height_m": 12.0, "location": "Минск", "urgency": "urgent_within_week"}
+  }
+]

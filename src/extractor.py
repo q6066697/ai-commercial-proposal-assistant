@@ -1,25 +1,26 @@
 """
 Extraction layer: turns a free-form customer request (RU/EN mixed) into
-structured project parameters.
+structured project parameters (see schema.py for the shared contract).
 
 Two implementations are provided:
 
 - `extract_rule_based()` — a regex-based extractor that ships with this repo
   so the demo runs end-to-end with zero external dependencies / API keys.
-- `extract_with_llm()` — a stub showing where an LLM call (Claude/GPT with
-  structured output / tool use) would replace the regex layer in production.
-  This is the intended real-world implementation; the rule-based one exists
-  purely so reviewers can run the demo without configuring credentials.
+- `extract_with_llm()` — the production path: a real LLM call using
+  structured output, validated against the same `ExtractedRequest` schema.
+  See llm_extractor.py for the implementation and required environment
+  variables. It is NOT called by default (main.py / app.py use the
+  rule-based path), so the demo stays runnable with zero setup.
 
-Both return the same schema, so `main.py` can swap one for the other without
-touching the rest of the pipeline.
+Both return the same schema, so main.py/app.py can swap one for the other
+without touching the rest of the pipeline.
 """
 from __future__ import annotations
 
-import os
 import re
-from dataclasses import dataclass, asdict
 from typing import Optional
+
+from schema import ExtractedRequest
 
 SERVICE_KEYWORDS = {
     "facade_cleaning": ["мойка фасада", "мойка фасадов", "facade cleaning", "чистка фасада"],
@@ -32,20 +33,6 @@ AREA_PATTERN = re.compile(r"([\d\s]{1,7})\s*(?:м2|м²|кв\.?\s*м)", re.IGNOR
 LENGTH_PATTERN = re.compile(r"([\d\s]{1,7})\s*(?:м\.п\.|погонн)", re.IGNORECASE)
 HEIGHT_PATTERN = re.compile(r"высот[а-я]*[^\d]{0,25}?(\d{1,3})\s*(?:м(?:етр)?)", re.IGNORECASE)
 URGENCY_PATTERN = re.compile(r"(в течение недели|срочно(?!сть)|как можно быстрее)", re.IGNORECASE)
-
-
-@dataclass
-class ExtractedRequest:
-    service: Optional[str]
-    quantity: Optional[float]
-    unit: Optional[str]  # "m2" or "m"
-    height_m: Optional[float]
-    location: Optional[str]
-    urgency: str  # "standard" | "urgent_within_week"
-    raw_text: str
-
-    def to_dict(self) -> dict:
-        return asdict(self)
 
 
 def _detect_service(text: str) -> tuple[Optional[str], Optional[str]]:
@@ -63,9 +50,10 @@ def _to_number(raw: str) -> float:
 
 
 def extract_rule_based(text: str) -> ExtractedRequest:
-    """Demo-only extractor. Good enough for the three sample requests in
-    data/demo_requests/, NOT a substitute for an LLM extractor on arbitrary
-    free-form input — real customer emails are far messier than this."""
+    """Demo-only extractor. Good enough for the sample requests in
+    data/demo_requests/ and data/eval_cases/, NOT a substitute for an LLM
+    extractor on arbitrary free-form input -- real customer emails are far
+    messier than this (typos, implicit info, multiple services per email)."""
     service, unit = _detect_service(text)
 
     quantity = None
@@ -97,21 +85,11 @@ def extract_rule_based(text: str) -> ExtractedRequest:
     )
 
 
-def extract_with_llm(text: str, api_key: Optional[str] = None, model: str = "claude-sonnet-4-6") -> ExtractedRequest:
-    """Production path (not wired up in this demo).
+def extract_with_llm(text: str) -> ExtractedRequest:
+    """Production extraction path. See llm_extractor.py for the real
+    implementation (kept in a separate module so this file -- and the demo
+    pipeline that imports it -- has no hard dependency on the `openai`
+    package or any API credentials)."""
+    from llm_extractor import extract_with_llm as _impl
 
-    In a real deployment this calls an LLM with a structured-output / tool-use
-    schema matching ExtractedRequest, so it correctly handles messy real-world
-    requests (typos, mixed units, implicit info, multiple services per email)
-    that the regex extractor above cannot.
-
-    Left unimplemented here deliberately: this repo is a synthetic demo and
-    should not require the reviewer to provide an API key to run it. Swapping
-    this in for `extract_rule_based` in main.py is the only change needed to
-    go from "demo" to "production extraction".
-    """
-    raise NotImplementedError(
-        "extract_with_llm is a documented stub for the production extraction "
-        "path. Set ANTHROPIC_API_KEY and implement the structured-output call "
-        "here to enable it; the demo pipeline uses extract_rule_based instead."
-    )
+    return _impl(text)
