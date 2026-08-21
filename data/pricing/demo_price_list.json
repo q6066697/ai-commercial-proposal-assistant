@@ -1,0 +1,44 @@
+{
+  "_disclaimer": "All prices below are SYNTHETIC and created for demonstration purposes only. They do not reflect any real company's pricing.",
+  "currency": "BYN",
+  "services": {
+    "facade_cleaning": {
+      "name_ru": "Мойка фасада",
+      "unit": "m2",
+      "base_price": 3.50,
+      "height_coefficients": [
+        {"max_height_m": 10, "coefficient": 1.0},
+        {"max_height_m": 20, "coefficient": 1.2},
+        {"max_height_m": 30, "coefficient": 1.5},
+        {"max_height_m": null, "coefficient": 1.8}
+      ]
+    },
+    "metal_structures_painting": {
+      "name_ru": "Покраска металлоконструкций",
+      "unit": "m2",
+      "base_price": 12.00,
+      "height_coefficients": [
+        {"max_height_m": 10, "coefficient": 1.0},
+        {"max_height_m": 20, "coefficient": 1.25},
+        {"max_height_m": 30, "coefficient": 1.6},
+        {"max_height_m": null, "coefficient": 2.0}
+      ]
+    },
+    "seam_sealing": {
+      "name_ru": "Герметизация швов",
+      "unit": "m",
+      "base_price": 8.50,
+      "height_coefficients": [
+        {"max_height_m": 10, "coefficient": 1.0},
+        {"max_height_m": 20, "coefficient": 1.2},
+        {"max_height_m": 30, "coefficient": 1.5},
+        {"max_height_m": null, "coefficient": 1.8}
+      ]
+    }
+  },
+  "minimum_order_byn": 300,
+  "urgency_surcharge": {
+    "standard": 1.0,
+    "urgent_within_week": 1.15
+  }
+}
