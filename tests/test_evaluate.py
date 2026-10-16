@@ -30,3 +30,17 @@ def test_service_and_quantity_fields_always_accurate():
     report = run_eval(extract_rule_based, cases)
     assert report["field_accuracy"]["service"] == 1.0
     assert report["field_accuracy"]["quantity"] == 1.0
+
+
+def test_rule_based_never_crashes_on_hard_set():
+    """Messy input may be extracted badly, but must never crash the pipeline
+    (regression for hard_007: '1,5 тыс. м2' used to raise ValueError)."""
+    report = run_eval(extract_rule_based, load_cases("hard"))
+    assert report["errors"] == 0
+
+
+def test_location_normalization():
+    from evaluate import normalize_location
+    assert normalize_location("г. Минск") == normalize_location("Минск")
+    assert normalize_location("город Могилёв") == normalize_location("Могилев")
+    assert normalize_location(None) is None

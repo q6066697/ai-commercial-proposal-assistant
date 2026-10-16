@@ -45,8 +45,18 @@ def _detect_service(text: str) -> tuple[Optional[str], Optional[str]]:
     return None, None
 
 
-def _to_number(raw: str) -> float:
-    return float(raw.replace(" ", "").replace(",", "."))
+def _to_number(raw: str) -> Optional[float]:
+    """Returns None instead of raising when the regex captured only
+    whitespace (e.g. "1,5 тыс. м2" -> the group before "м2" is " "), so an
+    unparseable number becomes a missing field the reviewer sees, not a
+    crashed pipeline. Found by the hard eval set (case hard_007)."""
+    cleaned = raw.replace(" ", "").replace(",", ".")
+    if not cleaned:
+        return None
+    try:
+        return float(cleaned)
+    except ValueError:
+        return None
 
 
 def extract_rule_based(text: str) -> ExtractedRequest:

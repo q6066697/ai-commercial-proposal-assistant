@@ -1,0 +1,752 @@
+{
+  "n_cases": 30,
+  "exact_match_rate": 0.967,
+  "field_accuracy": {
+    "service": 1.0,
+    "quantity": 1.0,
+    "unit": 0.967,
+    "height_m": 1.0,
+    "location": 1.0,
+    "urgency": 1.0
+  },
+  "errors": 0,
+  "latency_s": {
+    "mean": 3.266,
+    "p95": 3.478,
+    "total": 97.98
+  },
+  "per_tag": {
+    "chat_style": {
+      "n": 2,
+      "exact_match_rate": 1.0
+    },
+    "clean": {
+      "n": 8,
+      "exact_match_rate": 1.0
+    },
+    "distractor_numbers": {
+      "n": 1,
+      "exact_match_rate": 1.0
+    },
+    "height_floors": {
+      "n": 1,
+      "exact_match_rate": 1.0
+    },
+    "location_form": {
+      "n": 2,
+      "exact_match_rate": 1.0
+    },
+    "long_email": {
+      "n": 1,
+      "exact_match_rate": 1.0
+    },
+    "missing_fields": {
+      "n": 2,
+      "exact_match_rate": 0.5
+    },
+    "mixed_language": {
+      "n": 1,
+      "exact_match_rate": 1.0
+    },
+    "number_format": {
+      "n": 2,
+      "exact_match_rate": 1.0
+    },
+    "out_of_scope": {
+      "n": 2,
+      "exact_match_rate": 1.0
+    },
+    "prompt_injection": {
+      "n": 1,
+      "exact_match_rate": 1.0
+    },
+    "synonym": {
+      "n": 2,
+      "exact_match_rate": 1.0
+    },
+    "typo": {
+      "n": 2,
+      "exact_match_rate": 1.0
+    },
+    "unit_conflict": {
+      "n": 1,
+      "exact_match_rate": 1.0
+    },
+    "urgency_implicit": {
+      "n": 1,
+      "exact_match_rate": 1.0
+    },
+    "urgency_negated": {
+      "n": 1,
+      "exact_match_rate": 1.0
+    }
+  },
+  "per_case": [
+    {
+      "id": "case_001",
+      "tag": "clean",
+      "exact_match": true,
+      "field_matches": {
+        "service": true,
+        "quantity": true,
+        "unit": true,
+        "height_m": true,
+        "location": true,
+        "urgency": true
+      },
+      "predicted": {
+        "service": "facade_cleaning",
+        "quantity": 4200.0,
+        "unit": "m2",
+        "height_m": 18.0,
+        "location": "Минск",
+        "urgency": "standard"
+      },
+      "error": null
+    },
+    {
+      "id": "case_002",
+      "tag": "clean",
+      "exact_match": true,
+      "field_matches": {
+        "service": true,
+        "quantity": true,
+        "unit": true,
+        "height_m": true,
+        "location": true,
+        "urgency": true
+      },
+      "predicted": {
+        "service": "metal_structures_painting",
+        "quantity": 900.0,
+        "unit": "m2",
+        "height_m": 25.0,
+        "location": "Гродно",
+        "urgency": "standard"
+      },
+      "error": null
+    },
+    {
+      "id": "case_003",
+      "tag": "clean",
+      "exact_match": true,
+      "field_matches": {
+        "service": true,
+        "quantity": true,
+        "unit": true,
+        "height_m": true,
+        "location": true,
+        "urgency": true
+      },
+      "predicted": {
+        "service": "seam_sealing",
+        "quantity": 350.0,
+        "unit": "m",
+        "height_m": 30.0,
+        "location": "Минск",
+        "urgency": "standard"
+      },
+      "error": null
+    },
+    {
+      "id": "case_004",
+      "tag": "clean",
+      "exact_match": true,
+      "field_matches": {
+        "service": true,
+        "quantity": true,
+        "unit": true,
+        "height_m": true,
+        "location": true,
+        "urgency": true
+      },
+      "predicted": {
+        "service": "facade_cleaning",
+        "quantity": 1200.0,
+        "unit": "m2",
+        "height_m": null,
+        "location": "Брест",
+        "urgency": "urgent_within_week"
+      },
+      "error": null
+    },
+    {
+      "id": "case_005",
+      "tag": "clean",
+      "exact_match": true,
+      "field_matches": {
+        "service": true,
+        "quantity": true,
+        "unit": true,
+        "height_m": true,
+        "location": true,
+        "urgency": true
+      },
+      "predicted": {
+        "service": "metal_structures_painting",
+        "quantity": 600.0,
+        "unit": "m2",
+        "height_m": 15.0,
+        "location": null,
+        "urgency": "standard"
+      },
+      "error": null
+    },
+    {
+      "id": "case_006",
+      "tag": "clean",
+      "exact_match": true,
+      "field_matches": {
+        "service": true,
+        "quantity": true,
+        "unit": true,
+        "height_m": true,
+        "location": true,
+        "urgency": true
+      },
+      "predicted": {
+        "service": "facade_cleaning",
+        "quantity": 3000.0,
+        "unit": "m2",
+        "height_m": 20.0,
+        "location": "Витебск",
+        "urgency": "standard"
+      },
+      "error": null
+    },
+    {
+      "id": "case_007",
+      "tag": "clean",
+      "exact_match": true,
+      "field_matches": {
+        "service": true,
+        "quantity": true,
+        "unit": true,
+        "height_m": true,
+        "location": true,
+        "urgency": true
+      },
+      "predicted": {
+        "service": null,
+        "quantity": null,
+        "unit": null,
+        "height_m": null,
+        "location": null,
+        "urgency": "standard"
+      },
+      "error": null
+    },
+    {
+      "id": "case_008",
+      "tag": "clean",
+      "exact_match": true,
+      "field_matches": {
+        "service": true,
+        "quantity": true,
+        "unit": true,
+        "height_m": true,
+        "location": true,
+        "urgency": true
+      },
+      "predicted": {
+        "service": "seam_sealing",
+        "quantity": 120.0,
+        "unit": "m",
+        "height_m": 12.0,
+        "location": "Минск",
+        "urgency": "urgent_within_week"
+      },
+      "error": null
+    },
+    {
+      "id": "hard_001",
+      "tag": "chat_style",
+      "exact_match": true,
+      "field_matches": {
+        "service": true,
+        "quantity": true,
+        "unit": true,
+        "height_m": true,
+        "location": true,
+        "urgency": true
+      },
+      "predicted": {
+        "service": "facade_cleaning",
+        "quantity": 2000.0,
+        "unit": "m2",
+        "height_m": null,
+        "location": "Минск",
+        "urgency": "standard"
+      },
+      "error": null
+    },
+    {
+      "id": "hard_002",
+      "tag": "typo",
+      "exact_match": true,
+      "field_matches": {
+        "service": true,
+        "quantity": true,
+        "unit": true,
+        "height_m": true,
+        "location": true,
+        "urgency": true
+      },
+      "predicted": {
+        "service": "facade_cleaning",
+        "quantity": 3500.0,
+        "unit": "m2",
+        "height_m": 22.0,
+        "location": "Гомель",
+        "urgency": "standard"
+      },
+      "error": null
+    },
+    {
+      "id": "hard_003",
+      "tag": "typo",
+      "exact_match": true,
+      "field_matches": {
+        "service": true,
+        "quantity": true,
+        "unit": true,
+        "height_m": true,
+        "location": true,
+        "urgency": true
+      },
+      "predicted": {
+        "service": "seam_sealing",
+        "quantity": 400.0,
+        "unit": "m",
+        "height_m": 27.0,
+        "location": "Могилёв",
+        "urgency": "standard"
+      },
+      "error": null
+    },
+    {
+      "id": "hard_004",
+      "tag": "synonym",
+      "exact_match": true,
+      "field_matches": {
+        "service": true,
+        "quantity": true,
+        "unit": true,
+        "height_m": true,
+        "location": true,
+        "urgency": true
+      },
+      "predicted": {
+        "service": "metal_structures_painting",
+        "quantity": 750.0,
+        "unit": "m2",
+        "height_m": 9.0,
+        "location": "Брест",
+        "urgency": "standard"
+      },
+      "error": null
+    },
+    {
+      "id": "hard_005",
+      "tag": "synonym",
+      "exact_match": true,
+      "field_matches": {
+        "service": true,
+        "quantity": true,
+        "unit": true,
+        "height_m": true,
+        "location": true,
+        "urgency": true
+      },
+      "predicted": {
+        "service": "seam_sealing",
+        "quantity": 280.0,
+        "unit": "m",
+        "height_m": 35.0,
+        "location": "Минск",
+        "urgency": "standard"
+      },
+      "error": null
+    },
+    {
+      "id": "hard_006",
+      "tag": "number_format",
+      "exact_match": true,
+      "field_matches": {
+        "service": true,
+        "quantity": true,
+        "unit": true,
+        "height_m": true,
+        "location": true,
+        "urgency": true
+      },
+      "predicted": {
+        "service": "facade_cleaning",
+        "quantity": 4200.0,
+        "unit": "m2",
+        "height_m": 18.0,
+        "location": "Минск",
+        "urgency": "standard"
+      },
+      "error": null
+    },
+    {
+      "id": "hard_007",
+      "tag": "number_format",
+      "exact_match": true,
+      "field_matches": {
+        "service": true,
+        "quantity": true,
+        "unit": true,
+        "height_m": true,
+        "location": true,
+        "urgency": true
+      },
+      "predicted": {
+        "service": "facade_cleaning",
+        "quantity": 1500.0,
+        "unit": "m2",
+        "height_m": 14.0,
+        "location": "Гродно",
+        "urgency": "standard"
+      },
+      "error": null
+    },
+    {
+      "id": "hard_008",
+      "tag": "location_form",
+      "exact_match": true,
+      "field_matches": {
+        "service": true,
+        "quantity": true,
+        "unit": true,
+        "height_m": true,
+        "location": true,
+        "urgency": true
+      },
+      "predicted": {
+        "service": "metal_structures_painting",
+        "quantity": 1100.0,
+        "unit": "m2",
+        "height_m": 16.0,
+        "location": "Витебск",
+        "urgency": "standard"
+      },
+      "error": null
+    },
+    {
+      "id": "hard_009",
+      "tag": "location_form",
+      "exact_match": true,
+      "field_matches": {
+        "service": true,
+        "quantity": true,
+        "unit": true,
+        "height_m": true,
+        "location": true,
+        "urgency": true
+      },
+      "predicted": {
+        "service": "facade_cleaning",
+        "quantity": 2600.0,
+        "unit": "m2",
+        "height_m": 12.0,
+        "location": "Борисов",
+        "urgency": "standard"
+      },
+      "error": null
+    },
+    {
+      "id": "hard_010",
+      "tag": "urgency_implicit",
+      "exact_match": true,
+      "field_matches": {
+        "service": true,
+        "quantity": true,
+        "unit": true,
+        "height_m": true,
+        "location": true,
+        "urgency": true
+      },
+      "predicted": {
+        "service": "seam_sealing",
+        "quantity": 150.0,
+        "unit": "m",
+        "height_m": 20.0,
+        "location": "Минск",
+        "urgency": "urgent_within_week"
+      },
+      "error": null
+    },
+    {
+      "id": "hard_011",
+      "tag": "urgency_negated",
+      "exact_match": true,
+      "field_matches": {
+        "service": true,
+        "quantity": true,
+        "unit": true,
+        "height_m": true,
+        "location": true,
+        "urgency": true
+      },
+      "predicted": {
+        "service": "facade_cleaning",
+        "quantity": 900.0,
+        "unit": "m2",
+        "height_m": 10.0,
+        "location": "Брест",
+        "urgency": "standard"
+      },
+      "error": null
+    },
+    {
+      "id": "hard_012",
+      "tag": "height_floors",
+      "exact_match": true,
+      "field_matches": {
+        "service": true,
+        "quantity": true,
+        "unit": true,
+        "height_m": true,
+        "location": true,
+        "urgency": true
+      },
+      "predicted": {
+        "service": "facade_cleaning",
+        "quantity": 1800.0,
+        "unit": "m2",
+        "height_m": null,
+        "location": "Минск",
+        "urgency": "standard"
+      },
+      "error": null
+    },
+    {
+      "id": "hard_013",
+      "tag": "missing_fields",
+      "exact_match": false,
+      "field_matches": {
+        "service": true,
+        "quantity": true,
+        "unit": false,
+        "height_m": true,
+        "location": true,
+        "urgency": true
+      },
+      "predicted": {
+        "service": "metal_structures_painting",
+        "quantity": null,
+        "unit": null,
+        "height_m": null,
+        "location": "Гомель",
+        "urgency": "standard"
+      },
+      "error": null
+    },
+    {
+      "id": "hard_014",
+      "tag": "missing_fields",
+      "exact_match": true,
+      "field_matches": {
+        "service": true,
+        "quantity": true,
+        "unit": true,
+        "height_m": true,
+        "location": true,
+        "urgency": true
+      },
+      "predicted": {
+        "service": "seam_sealing",
+        "quantity": null,
+        "unit": "m",
+        "height_m": 25.0,
+        "location": null,
+        "urgency": "standard"
+      },
+      "error": null
+    },
+    {
+      "id": "hard_015",
+      "tag": "out_of_scope",
+      "exact_match": true,
+      "field_matches": {
+        "service": true,
+        "quantity": true,
+        "unit": true,
+        "height_m": true,
+        "location": true,
+        "urgency": true
+      },
+      "predicted": {
+        "service": null,
+        "quantity": null,
+        "unit": null,
+        "height_m": 15.0,
+        "location": "Минск",
+        "urgency": "standard"
+      },
+      "error": null
+    },
+    {
+      "id": "hard_016",
+      "tag": "out_of_scope",
+      "exact_match": true,
+      "field_matches": {
+        "service": true,
+        "quantity": true,
+        "unit": true,
+        "height_m": true,
+        "location": true,
+        "urgency": true
+      },
+      "predicted": {
+        "service": null,
+        "quantity": null,
+        "unit": null,
+        "height_m": null,
+        "location": null,
+        "urgency": "standard"
+      },
+      "error": null
+    },
+    {
+      "id": "hard_017",
+      "tag": "prompt_injection",
+      "exact_match": true,
+      "field_matches": {
+        "service": true,
+        "quantity": true,
+        "unit": true,
+        "height_m": true,
+        "location": true,
+        "urgency": true
+      },
+      "predicted": {
+        "service": "facade_cleaning",
+        "quantity": 800.0,
+        "unit": "m2",
+        "height_m": 10.0,
+        "location": "Минск",
+        "urgency": "standard"
+      },
+      "error": null
+    },
+    {
+      "id": "hard_018",
+      "tag": "distractor_numbers",
+      "exact_match": true,
+      "field_matches": {
+        "service": true,
+        "quantity": true,
+        "unit": true,
+        "height_m": true,
+        "location": true,
+        "urgency": true
+      },
+      "predicted": {
+        "service": "metal_structures_painting",
+        "quantity": 640.0,
+        "unit": "m2",
+        "height_m": 11.0,
+        "location": "Гродно",
+        "urgency": "standard"
+      },
+      "error": null
+    },
+    {
+      "id": "hard_019",
+      "tag": "mixed_language",
+      "exact_match": true,
+      "field_matches": {
+        "service": true,
+        "quantity": true,
+        "unit": true,
+        "height_m": true,
+        "location": true,
+        "urgency": true
+      },
+      "predicted": {
+        "service": "facade_cleaning",
+        "quantity": 2500.0,
+        "unit": "m2",
+        "height_m": 30.0,
+        "location": "Минск",
+        "urgency": "urgent_within_week"
+      },
+      "error": null
+    },
+    {
+      "id": "hard_020",
+      "tag": "long_email",
+      "exact_match": true,
+      "field_matches": {
+        "service": true,
+        "quantity": true,
+        "unit": true,
+        "height_m": true,
+        "location": true,
+        "urgency": true
+      },
+      "predicted": {
+        "service": "seam_sealing",
+        "quantity": 520.0,
+        "unit": "m",
+        "height_m": 48.0,
+        "location": "Минск",
+        "urgency": "standard"
+      },
+      "error": null
+    },
+    {
+      "id": "hard_021",
+      "tag": "unit_conflict",
+      "exact_match": true,
+      "field_matches": {
+        "service": true,
+        "quantity": true,
+        "unit": true,
+        "height_m": true,
+        "location": true,
+        "urgency": true
+      },
+      "predicted": {
+        "service": "seam_sealing",
+        "quantity": 260.0,
+        "unit": "m",
+        "height_m": 21.0,
+        "location": "Брест",
+        "urgency": "standard"
+      },
+      "error": null
+    },
+    {
+      "id": "hard_022",
+      "tag": "chat_style",
+      "exact_match": true,
+      "field_matches": {
+        "service": true,
+        "quantity": true,
+        "unit": true,
+        "height_m": true,
+        "location": true,
+        "urgency": true
+      },
+      "predicted": {
+        "service": "facade_cleaning",
+        "quantity": 700.0,
+        "unit": "m2",
+        "height_m": 25.0,
+        "location": "Гомель",
+        "urgency": "urgent_within_week"
+      },
+      "error": null
+    }
+  ],
+  "tokens": {
+    "prompt": 20742,
+    "completion": 5881
+  },
+  "extractor": "llm (gpt-oss:120b-cloud)",
+  "case_set": "all"
+}

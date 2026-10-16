@@ -34,7 +34,7 @@ Customer Request (free text)
           ▼
    ┌──────────────┐
    │  Extraction  │   rule-based demo (this repo) /
-   │              │   LLM structured-output (production, stubbed)
+   │              │   LLM structured output (selectable)
    └──────┬───────┘
           ▼
    Structured Project Data
@@ -127,32 +127,62 @@ when a server is actually needed instead.
 
 ### Evaluation
 
-Extraction accuracy is measured against a fixed set of synthetic cases
-(`data/eval_cases/cases.json`) rather than eyeballed:
+Extraction accuracy is measured against fixed sets of synthetic cases rather
+than eyeballed, and reported per field, per case type, with latency (and,
+for the LLM path, tokens and cost):
+
+| Set | File | What it contains |
+|---|---|---|
+| `clean` | `data/eval_cases/cases.json` | 8 tidy, form-like requests — regression baseline |
+| `hard` | `data/eval_cases/hard_cases.json` | 22 messy requests: chat style, typos, synonyms, number formats (`4 200 м²`, `1,5 тыс.`), city in another case (`в Витебске`), implicit / negated urgency, floors instead of meters, missing fields, out-of-scope work, distractor numbers, mixed language, prompt injection |
 
 ```bash
-python src/evaluate.py
+python src/evaluate.py                                   # rule-based, clean set
+python src/evaluate.py --set hard                        # rule-based, hard set
+python src/evaluate.py --extractor llm --set all --save  # LLM, both sets, JSON report
 ```
 
-```
-Extractor: rule_based
-Cases: 8
-Exact-match rate: 87.5%
+**Results** (exact match = all 6 fields correct):
 
-Field accuracy:
-  service       100.0%
-  quantity      100.0%
-  unit          100.0%
-  height_m       87.5%
-  location      100.0%
-  urgency       100.0%
-```
+| Extractor | clean (8) | hard (22) | Mean latency | Notes |
+|---|---|---|---|---|
+| Rule-based (regex) | 87.5% | 45.5% | ~0 s | free, deterministic, offline |
+| LLM — `gpt-oss:120b-cloud` via Ollama | **100%** | **95.5%** | 3.3 s | ~690 input / ~200 output tokens per request |
+| LLM — `qwen2.5:3b` locally (CPU only) | — | — | ~4–5 min | run stopped: impractical on CPU-only hardware |
 
-The one failing case is deliberate, not swept under the rug: it uses English
-phrasing ("height up to 20 meters") that the Russian-pattern regex extractor
-doesn't catch — the exact kind of input the LLM extraction path (below) is
-meant to handle instead. `tests/test_evaluate.py` guards against this
-accuracy silently regressing further.
+Raw reports: `outputs/eval_results/`.
+
+What the numbers show:
+
+- **A clean test set flatters rules.** 87.5% on form-like input drops to
+  45.5% on messy input: the regex extractor fails on every typo, synonym,
+  chat-style and mixed-language case, and on implicit urgency ("до пятницы")
+  and negated urgency ("не срочно" — matched as urgent).
+- **The LLM handles exactly what rules can't.** Typos, synonyms, chat style,
+  `1,5 тыс.`, city names in other grammatical cases, implicit and negated
+  urgency, English input — all correct. It also ignored the embedded
+  prompt-injection instruction and the distractor numbers (phone, year).
+- **The one LLM miss is a design lesson, not a prompt problem.** In
+  `hard_013` (service given, no quantity) the model returned `unit: null`
+  although the unit is fully determined by the service. Anything that can be
+  derived deterministically should be computed in code, not requested from
+  the model — the same principle as pricing. Next step: derive `unit` from
+  `service` in the schema. Not applied yet, so the number above isn't tuned
+  to the test set.
+- **The hard set found a real bug.** `1,5 тыс. м2` crashed the regex
+  extractor with a `ValueError`; it now returns a missing field the reviewer
+  sees instead of crashing the pipeline (regression test in
+  `tests/test_evaluate.py`).
+- **Privacy vs. hardware.** A small local model keeps customer data on the
+  machine but was far too slow on a CPU-only laptop; a cloud model is fast and
+  accurate but sends the request text out. For real customer data the
+  realistic options are a local model on a GPU (see the vLLM setup linked
+  below) or a cloud API with anonymized input.
+
+Locations are compared after normalization (`г. Минск` = `Минск`,
+`Могилёв` = `Могилев`), so a correct city with a different prefix isn't
+counted as an error. `tests/test_evaluate.py` guards the clean-set baseline
+and checks the pipeline never crashes on the hard set.
 
 ### LLM extraction (production path)
 
@@ -175,9 +205,21 @@ export LLM_MODEL="Qwen2.5-7B-Instruct"            # or e.g. "gpt-4o-mini"
 python src/evaluate.py --extractor llm
 ```
 
-Not wired into `main.py` / `app.py` by default — both use
-`extract_rule_based()` so the demo stays runnable with zero setup. Swapping
-in `extract_with_llm()` is a one-line change once you have an endpoint.
+A local model through **Ollama** works the same way — Ollama serves an
+OpenAI-compatible API:
+
+```bash
+export LLM_API_BASE="http://localhost:11434/v1"
+export LLM_API_KEY="ollama"          # any non-empty placeholder
+export LLM_MODEL="qwen2.5:7b"
+```
+
+The prompt treats the customer text as data inside `<request>` tags and
+explicitly refuses embedded instructions (see the `prompt_injection` case).
+
+In the Streamlit UI the extractor is selectable in the sidebar once these
+variables are set; the CLI demo (`main.py`) keeps the zero-setup rule-based
+path.
 
 ## Deployment options
 

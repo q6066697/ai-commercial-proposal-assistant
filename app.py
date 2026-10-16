@@ -7,10 +7,13 @@ No server / hosting needed — this runs entirely on the user's own machine:
 
 It reuses the exact same extraction/calculation/generation modules as
 src/main.py (the CLI version); this file only adds a human-friendly
-front end around them. Nothing here talks to the network.
+front end around them. With the rule-based extractor nothing talks to the
+network; the LLM extractor calls whatever endpoint LLM_API_BASE points at
+(a local Ollama/vLLM server keeps everything on the machine).
 """
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 
@@ -18,7 +21,7 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
 
-from extractor import extract_rule_based  # noqa: E402
+from extractor import extract_rule_based, extract_with_llm  # noqa: E402
 from calculator import calculate_price  # noqa: E402
 from proposal_generator import generate_proposal_docx  # noqa: E402
 
@@ -29,10 +32,19 @@ OUTPUTS_DIR = ROOT / "outputs"
 st.set_page_config(page_title="AI Commercial Proposal Assistant", page_icon="📄", layout="centered")
 
 st.title("📄 AI Commercial Proposal Assistant")
-st.caption(
-    "Demo build — locally-run, no server. Extraction is rule-based for this demo; "
-    "see src/extractor.py for the LLM-extraction stub used in production."
-)
+st.caption("Demo build — locally-run, no server. All data is synthetic.")
+
+# --- Extractor choice ----------------------------------------------------
+llm_configured = all(os.environ.get(k) for k in ("LLM_API_BASE", "LLM_API_KEY", "LLM_MODEL"))
+extractor_options = ["Правила (без настройки)"]
+if llm_configured:
+    extractor_options.append(f"LLM ({os.environ['LLM_MODEL']})")
+extractor_choice = st.sidebar.radio("Способ извлечения", extractor_options)
+if not llm_configured:
+    st.sidebar.caption(
+        "LLM-режим появится, если задать LLM_API_BASE, LLM_API_KEY и LLM_MODEL "
+        "(см. README, раздел «LLM extraction»)."
+    )
 
 # --- Input -------------------------------------------------------------
 demo_files = sorted(DEMO_REQUESTS_DIR.glob("*.txt"))
@@ -50,7 +62,15 @@ generate_clicked = st.button("Сформировать КП", type="primary", di
 
 # --- Pipeline ------------------------------------------------------------
 if generate_clicked:
-    extracted = extract_rule_based(request_text)
+    try:
+        if extractor_choice.startswith("LLM"):
+            with st.spinner("Модель извлекает параметры..."):
+                extracted = extract_with_llm(request_text)
+        else:
+            extracted = extract_rule_based(request_text)
+    except Exception as exc:
+        st.error(f"Ошибка извлечения: {exc}")
+        st.stop()
 
     if extracted.service is None:
         st.error(

@@ -1,2 +1,7 @@
 venv/
 **/__pycache__/
+
+.venv/
+.venv-win/
+.pytest_cache/
+outputs/streamlit_generated_proposal.docx
