@@ -72,14 +72,15 @@ if generate_clicked:
         st.error(f"Ошибка извлечения: {exc}")
         st.stop()
 
-    if extracted.service is None:
+    # Called even without a detected service: negotiated work (e.g. light
+    # boxes) is recognised by the price list's manual_estimate_only triggers.
+    breakdown = calculate_price(extracted)
+    if breakdown.status == "needs_clarification" and "service" in breakdown.clarify_fields:
         st.error(
             "Не удалось распознать услугу в тексте заявки. "
-            "Демо-версия понимает: мойку фасада, покраску металлоконструкций, герметизацию швов."
+            "Список услуг — в data/price_list.json."
         )
     else:
-        breakdown = calculate_price(extracted)
-
         col1, col2 = st.columns(2)
         with col1:
             st.subheader("Извлечённые параметры")
@@ -91,7 +92,17 @@ if generate_clicked:
         if breakdown.warnings:
             st.warning("Требует проверки перед отправкой клиенту:\n\n" + "\n".join(f"- {w}" for w in breakdown.warnings))
 
-        st.metric("ИТОГО", f"{breakdown.total:.2f} {breakdown.currency}")
+        if breakdown.status == "ok":
+            st.table([
+                {"Статья": l.label, "Расчёт": l.formula, "Сумма": f"{l.amount:.2f}",
+                 "Основание": f"{l.source} ({l.source_type})"}
+                for l in breakdown.lines
+            ])
+            st.metric("ИТОГО", f"{breakdown.total:.2f} {breakdown.currency}")
+        elif breakdown.status == "manual_estimate":
+            st.metric("ИТОГО", "ручной расчёт")
+        else:
+            st.metric("ИТОГО", "нужно уточнение")
 
         output_path = OUTPUTS_DIR / "streamlit_generated_proposal.docx"
         generate_proposal_docx(extracted, breakdown, output_path, proposal_number="UI-DEMO")

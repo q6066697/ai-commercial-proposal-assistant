@@ -1,0 +1,125 @@
+{
+  "meta": {
+    "version": "0.3-client-calibrated",
+    "currency": "BYN",
+    "vat": "без НДС (подтверждено клиентом)",
+    "company": "ООО «Высотник-Демо» (вымышленная компания)",
+    "note": "Ставки услуг — медиана рынка Минска (ноябрь 2026). Правила расчёта откалиброваны по ответам практикующего промышленного альпиниста (03.11.2026). source: client = подтверждено клиентом, market = рынок, assumption = допущение для демо.",
+    "sources": [
+      "https://alpinisme.by/ceny/",
+      "https://www.carabin.by/ceny-na-uslugi-promyshlenyh-alpinistov-v-2026-godu/",
+      "https://alpteh.by/tseny",
+      "https://deal.by/cs/310242",
+      "Интервью с клиентом, 03.11.2026"
+    ]
+  },
+
+  "services": [
+    {"id": "facade_washing",     "name": "Мойка фасада",                         "unit": "m2", "rate": 1.5,  "market_range": [1, 2],     "category": "cleaning", "top_demand": true, "source": "market"},
+    {"id": "window_washing",     "name": "Мойка окон и остекления",              "unit": "m2", "rate": 1.5,  "market_range": [1, 2],     "category": "cleaning", "source": "market"},
+    {"id": "roof_washing",       "name": "Мойка кровли",                         "unit": "m2", "rate": 1.5,  "market_range": [1.5, 1.5], "category": "cleaning", "source": "market"},
+    {"id": "facade_painting",    "name": "Покраска фасада",                      "unit": "m2", "rate": 4.0,  "market_range": [2.7, 5],   "category": "painting", "top_demand": true, "materials_separate": true, "material_rate": 2.5, "source": "market"},
+    {"id": "roof_painting",      "name": "Покраска крыши",                       "unit": "m2", "rate": 4.0,  "market_range": [3, 5],     "category": "painting", "materials_separate": true, "material_rate": 2.5, "source": "market"},
+    {"id": "facade_repair",      "name": "Ремонт фасада (локальный)",            "unit": "m2", "rate": 15.0, "market_range": [5, 15],    "category": "facade",   "top_demand": true, "materials_separate": true, "material_rate": 6.0, "source": "market"},
+    {"id": "roof_repair",        "name": "Ремонт кровли (локальный)",            "unit": "m2", "rate": 12.0, "market_range": [8, 15],    "category": "facade",   "top_demand": true, "materials_separate": true, "material_rate": 8.0, "source": "assumption"},
+    {"id": "joint_sealing",      "name": "Герметизация межпанельных швов",       "unit": "lm", "rate": 8.0,  "market_range": [5, 10],    "category": "facade",   "top_demand": true, "materials_separate": true, "material_rate": 2.0, "source": "market"},
+    {"id": "facade_insulation",  "name": "Утепление фасада (квартиры, балкона)", "unit": "m2", "rate": 58.0, "market_range": [37, 60],   "category": "facade",   "materials_separate": true, "material_rate": 25.0, "source": "market"},
+    {"id": "banner_install",     "name": "Монтаж баннера на готовую раму",       "unit": "m2", "rate": 5.0,  "market_range": [4, 6],     "category": "mounting", "top_demand": true, "source": "market"},
+    {"id": "banner_frame",       "name": "Монтаж рамы под баннер",               "unit": "lm", "rate": 15.0, "market_range": [15, 15],   "category": "mounting", "source": "market"},
+    {"id": "ac_install",         "name": "Монтаж кондиционера на фасаде",        "unit": "pcs","rate": 170.0,"market_range": [170, 170], "category": "mounting", "source": "market"},
+    {"id": "sign_dismantle",     "name": "Демонтаж наружной вывески",            "unit": "pcs","rate": 150.0,"market_range": [150, 150], "category": "mounting", "source": "market"},
+    {"id": "snow_removal",       "name": "Очистка кровли от снега и наледи",     "unit": "m2", "rate": 3.0,  "market_range": [2, 4],     "category": "seasonal", "top_demand": true, "season": "winter", "source": "market"},
+    {"id": "icicle_removal",     "name": "Удаление сосулек",                     "unit": "lm", "rate": 5.0,  "market_range": [3, 6],     "category": "seasonal", "season": "winter", "source": "market"},
+    {"id": "tree_removal",       "name": "Удаление дерева по частям",            "unit": "pcs","rate": 75.0, "market_range": [50, 120],  "category": "arboristics", "source": "market"},
+    {"id": "cargo_lift",         "name": "Подъём груза на этаж",                 "unit": "pcs","rate": null, "category": "rigging",  "source": "market",
+     "weight_tiers_kg": [
+       {"max_kg": 50,  "price": 180},
+       {"max_kg": 100, "price": 200},
+       {"max_kg": 200, "price": 300},
+       {"max_kg": 300, "price": 400},
+       {"max_kg": 500, "price": 800}
+     ],
+     "over_max": "manual"}
+  ],
+
+  "manual_estimate_only": {
+    "description": "Система не придумывает цену: КП с пометкой «требуется осмотр объекта / ручной расчёт». Клиент: без осмотра цену дать «сложно».",
+    "items": [
+      {"name": "Реставрация объектов культуры",
+       "triggers": ["реставрац", "объект культурного наследия", "объекта культурного наследия", "памятник архитектуры", "памятника архитектуры"]},
+      {"name": "Монтаж объёмных букв, световых коробов, вывесок",
+       "triggers": ["объёмных букв", "объёмные буквы", "объёмными буквами", "световых короб", "световой короб", "световые короб", "светового короб", "монтаж вывес", "монтажу вывес", "установка вывес", "установку вывес"]},
+      {"name": "Сварочные работы на высоте",
+       "triggers": ["сварк", "сварочн"]},
+      {"name": "Покраска и ремонт водонапорных башен",
+       "triggers": ["водонапорн"]},
+      {"name": "Монтаж медиафасадов и подсветки зданий",
+       "triggers": ["медиафасад", "подсветк", "архитектурное освещение", "архитектурного освещения"]},
+      {"name": "Подъём груза тяжелее 500 кг",
+       "triggers": [], "handled_by": "services.cargo_lift.over_max"},
+      {"name": "Абонентское обслуживание кровли в зимний сезон",
+       "triggers": ["абонентск", "на весь зимний сезон", "на весь сезон"]},
+      {"name": "Очистка снега в пик снегопадов (цена кратно выше, только вручную)",
+       "triggers": [], "handled_by": "pricing_rules.winter_peak"}
+    ],
+    "triggers_note": "Триггеры — фрагменты слов из текста заявки (без учёта регистра и ё/е), совпадение ищется с начала слова: «монтаж вывес» не срабатывает на «демонтаж вывески»."
+  },
+
+  "pricing_rules": {
+    "minimum_order": {"amount": 650.00, "source": "client"},
+    "dismantle_factor": {"value": 0.6, "source": "market", "note": "Демонтаж = 50–70% от монтажа"},
+    "height_coefficients": {
+      "source": "client",
+      "note": "Клиент: высокие этажи дороже на 20%. Граница 15 м (~5 этаж) — допущение.",
+      "tiers": [
+        {"max_m": 15,   "k": 1.0},
+        {"max_m": null, "k": 1.2}
+      ],
+      "floor_to_m": 3.0,
+      "exclude_services": ["cargo_lift", "tree_removal"],
+      "if_unknown": "max_tier",
+      "decision_note": "03.11.2026: не применяется к подъёму груза и удалению деревьев; если высота не указана — берётся верхняя ступень и высота уточняется у клиента."
+    },
+    "urgency": {
+      "surcharge": 0.20, "threshold_days": 3, "source": "client",
+      "apply": "only_if_requested",
+      "note": "Обычно срочности нет — заказы идут через тендеры. +20% только если заявка явно требует ускорения."
+    },
+    "winter_peak": {
+      "source": "client",
+      "apply": "manual",
+      "note": "В пик снегопадов цена растёт кратно — авто-коэффициента нет, флаг на ручной расчёт.",
+      "services": ["snow_removal", "icicle_removal"],
+      "triggers": ["снегопад", "после снегопада", "завалило"],
+      "warning": "В пик снегопадов цена кратно выше, уточняется отдельно."
+    },
+    "complex_access": {"k": 1.25, "triggers": ["отрицательный угол", "стеснённые условия", "нет доступа на кровлю", "над проезжей частью"], "source": "assumption"},
+    "materials": {"mode": "separate_line", "source": "client", "note": "Материалы всегда отдельной строкой КП"},
+    "application_order": "работы: ставка × объём × высота × сложный доступ → + срочность (если запрошена) → + материалы отдельной строкой → минимальный заказ 650"
+  },
+
+  "commercial_terms": {
+    "source": "client",
+    "required_sections": ["срок действия КП", "условия оплаты", "сроки выполнения работ", "гарантия"],
+    "site_inspection": "бесплатно при заключении договора",
+    "payment": "наличный или безналичный расчёт по счёту",
+    "warranty_years": 3,
+    "proposal_valid_days": 14,
+    "output_format": "docx"
+  },
+
+  "client_baseline": {
+    "source": "client",
+    "minutes_per_proposal": [30, 60],
+    "proposals_per_month": 20,
+    "conversion_to_contract": [2, 3],
+    "main_lead_source": "тендеры (основная часть), также мессенджеры и почта",
+    "main_time_sink": "вникнуть в проект и вычитать все требования заявки",
+    "most_edited_before_sending": "цены",
+    "pain_points": [
+      "требования тендера к персоналу, допускам, документам — много бюрократии",
+      "при согласовании что-то забывается или появляются доп. работы сверх оговорённых",
+      "неудобные заявки: много материалов и мало работ"
+    ]
+  }
+}

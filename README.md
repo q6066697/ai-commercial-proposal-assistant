@@ -38,13 +38,13 @@ Customer Request (free text)
    └──────┬───────┘
           ▼
    Structured Project Data
-   {service, quantity, height_m, location, urgency}
+   {service, quantity, height_m | floor, weight_kg, location, urgency, ...}
           │
           ▼
-   ┌──────────────┐
-   │  Calculator  │   deterministic pricing: base_price × qty ×
-   │              │   height_coefficient × urgency_multiplier
-   └──────┬───────┘
+   ┌──────────────┐   deterministic pricing from data/price_list.json:
+   │  Calculator  │   rate × qty × height × complex access → + urgency
+   │              │   → + materials (separate line) → minimum order;
+   └──────┬───────┘   or "manual estimate" / "needs clarification"
           ▼
    ┌──────────────┐
    │   Proposal   │   python-docx → structured DOCX
@@ -77,10 +77,31 @@ Customer Request (free text)
 }
 ```
 
-**Calculation:** `4200 × 3.50 BYN × 1.2 (height coeff.) = 17 640.00 BYN`
+**Calculation** (price list v0.3, `data/price_list.json`):
+
+| Line | Calculation | Sum, BYN | Rule |
+|---|---|---|---|
+| Мойка фасада: ставка × объём | 1,50 × 4200 м² | 6 300,00 | `services.facade_washing.rate` (market) |
+| Коэффициент высоты | ×1,2 (18 м, tier «выше 15 м») | 1 260,00 | `pricing_rules.height_coefficients` (client) |
+| Материалы | not required for this work | 0,00 | `pricing_rules.materials` (client) |
+| **ИТОГО** | | **7 560,00** | |
+
+Every line is signed with the path of the rule in the price list and its
+source (`client` = confirmed by the client, `market` = market rate,
+`assumption` = demo assumption), and the lines always sum to the total — the
+client mostly edits prices before sending, so they need to see what the
+number is made of. Work the price list marks as `manual_estimate_only`
+(light boxes, welding, cargo over 500 kg, snow removal at snowfall peak...)
+gets no number at all, only "требуется осмотр объекта / ручной расчёт"; a
+request without a volume gets "needs clarification" instead of a 0 total.
+See `data/knowledge/pricing_rules.md`.
+
+(With the v0.1 demo price list, `data/pricing/demo_price_list.json`, the same
+request was `4200 × 3.50 × 1.2 = 17 640.00 BYN`; that file is still loadable
+and pinned in `tests/test_pipeline.py`.)
 
 **Output:** `outputs/facade_cleaning_proposal.docx` — a formatted proposal with
-the cost breakdown table and a flagged-warnings section for anything the
+the line-by-line cost table and a flagged-warnings section for anything the
 extractor couldn't confidently fill in.
 
 ## Human-in-the-loop, not full automation
@@ -146,18 +167,21 @@ python src/evaluate.py --extractor llm --set all --save  # LLM, both sets, JSON 
 
 | Extractor | clean (8) | hard (22) | Mean latency | Notes |
 |---|---|---|---|---|
-| Rule-based (regex) | 87.5% | 45.5% | ~0 s | free, deterministic, offline |
+| Rule-based (regex) | 87.5% | 50.0% | ~0 s | free, deterministic, offline (was 45.5% on hard before the "не срочно" fix) |
 | LLM — `gpt-oss:120b-cloud` via Ollama | **100%** | **95.5%** | 3.3 s | ~690 input / ~200 output tokens per request |
 | LLM — `qwen2.5:3b` locally (CPU only) | — | — | ~4–5 min | run stopped: impractical on CPU-only hardware |
 
-Raw reports: `outputs/eval_results/`.
+Raw reports: `outputs/eval_results/`. The LLM rows were measured with the
+v0.2 prompt; the prompt now also covers the v0.3 services, floors, cargo
+weight and dismantling, so they need a re-run.
 
 What the numbers show:
 
 - **A clean test set flatters rules.** 87.5% on form-like input drops to
-  45.5% on messy input: the regex extractor fails on every typo, synonym,
-  chat-style and mixed-language case, and on implicit urgency ("до пятницы")
-  and negated urgency ("не срочно" — matched as urgent).
+  50% on messy input: the regex extractor fails on every typo, synonym,
+  chat-style and mixed-language case, and on implicit urgency ("до пятницы").
+  Negated urgency ("не срочно") used to be matched as urgent; fixed in v0.3,
+  since urgency is now surcharged only when explicitly requested.
 - **The LLM handles exactly what rules can't.** Typos, synonyms, chat style,
   `1,5 тыс.`, city names in other grammatical cases, implicit and negated
   urgency, English input — all correct. It also ignored the embedded

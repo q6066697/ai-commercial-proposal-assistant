@@ -12,18 +12,33 @@ from typing import Literal, Optional
 
 from pydantic import BaseModel, Field, model_validator
 
-ServiceKey = Literal["facade_cleaning", "metal_structures_painting", "seam_sealing"]
+# The first three are the v0.1 ids the eval set is labelled with; the
+# calculator maps them onto v0.3 ids (see price_list.LEGACY_SERVICE_ALIASES).
+ServiceKey = Literal[
+    "facade_cleaning", "metal_structures_painting", "seam_sealing",
+    "facade_washing", "joint_sealing", "window_washing", "roof_washing", "facade_painting", "roof_painting",
+    "facade_repair", "roof_repair", "facade_insulation", "banner_install",
+    "banner_frame", "ac_install", "sign_dismantle", "snow_removal",
+    "icicle_removal", "tree_removal", "cargo_lift",
+]
 Urgency = Literal["standard", "urgent_within_week"]
 
 
 class ExtractedRequest(BaseModel):
     service: Optional[ServiceKey] = None
     quantity: Optional[float] = Field(default=None, ge=0)
-    unit: Optional[Literal["m2", "m"]] = None
+    unit: Optional[Literal["m2", "m", "lm", "pcs"]] = None
     height_m: Optional[float] = Field(default=None, ge=0, le=500)
     location: Optional[str] = None
     urgency: Urgency = "standard"
     raw_text: str
+    # Optional details used by the v0.3 pricing rules. height_m stays
+    # "explicit meters only"; a floor number is kept separately so the
+    # calculator can show the floor -> meters conversion in the quote.
+    floor: Optional[int] = Field(default=None, ge=0, le=200)
+    weight_kg: Optional[float] = Field(default=None, ge=0)
+    is_dismantle: bool = False
+    urgency_evidence: Optional[str] = None
     missing_fields: list[str] = Field(default_factory=list)
 
     @model_validator(mode="after")
@@ -36,7 +51,7 @@ class ExtractedRequest(BaseModel):
             missing.append("service")
         if self.quantity is None:
             missing.append("quantity")
-        if self.height_m is None:
+        if self.height_m is None and self.floor is None:
             missing.append("height_m")
         if self.location is None:
             missing.append("location")

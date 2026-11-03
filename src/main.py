@@ -28,13 +28,14 @@ def run_one(request_path: Path) -> None:
     extracted = extract_rule_based(text)
     print("Extracted:", json.dumps(extracted.to_dict(), ensure_ascii=False, indent=2))
 
-    if extracted.service is None:
-        print("!! Could not detect a known service — skipping calculation. "
-              "This is where an LLM extractor would handle messier phrasing.")
-        return
-
+    # Called even without a detected service: negotiated work (e.g. light
+    # boxes) is recognised by the price list's manual_estimate_only triggers.
     breakdown = calculate_price(extracted)
     print("Price breakdown:", json.dumps(breakdown.to_dict(), ensure_ascii=False, indent=2))
+    if breakdown.status == "needs_clarification" and "service" in breakdown.clarify_fields:
+        print("!! Could not detect a known service — skipping proposal. "
+              "This is where an LLM extractor would handle messier phrasing.")
+        return
 
     output_path = OUTPUTS_DIR / f"{request_path.stem}_proposal.docx"
     generate_proposal_docx(extracted, breakdown, output_path, proposal_number=f"DEMO-{request_path.stem}")

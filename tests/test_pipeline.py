@@ -10,6 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from extractor import extract_rule_based
 from calculator import calculate_price
+from price_list import LEGACY_PRICE_LIST_PATH, load_price_list
 
 
 def test_facade_cleaning_extraction():
@@ -24,7 +25,8 @@ def test_facade_cleaning_extraction():
 def test_facade_cleaning_price():
     text = (Path(__file__).resolve().parent.parent / "data" / "demo_requests" / "facade_cleaning.txt").read_text(encoding="utf-8")
     extracted = extract_rule_based(text)
-    breakdown = calculate_price(extracted)
+    # Pinned to the v0.1 demo price list: this number is tied to its rates.
+    breakdown = calculate_price(extracted, price_list=load_price_list(LEGACY_PRICE_LIST_PATH))
     # 4200 * 3.50 * 1.2 (height 10-20m tier) * 1.0 (standard urgency)
     assert round(breakdown.total, 2) == 17640.0
     assert breakdown.warnings == []
@@ -34,7 +36,7 @@ def test_missing_height_flags_warning():
     text = "Услуга: мойка фасада. Площадь: 500 м2. г. Минск."
     extracted = extract_rule_based(text)
     breakdown = calculate_price(extracted)
-    assert any("Height" in w for w in breakdown.warnings)
+    assert any("Высота не указана" in w for w in breakdown.warnings)
 
 
 def test_unknown_service_returns_none():

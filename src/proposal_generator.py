@@ -14,9 +14,48 @@ from docx.shared import Pt, Cm
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 
 from extractor import ExtractedRequest
-from calculator import PriceBreakdown
+from calculator import FIELD_LABELS, UNIT_LABELS, PriceBreakdown
 
+# Fallback when the price list has no meta.company (the legacy demo list).
 COMPANY_NAME = "DemoAlp Services LLC"  # synthetic demo company, see data/knowledge/company_profile.md
+SOURCE_LABELS = {"client": "подтверждено клиентом", "market": "рынок", "assumption": "допущение", "demo": "демо-прайс"}
+
+
+def _money(x: float) -> str:
+    return f"{x:,.2f}".replace(",", " ").replace(".", ",")
+
+
+def _source_label(source: str, source_type: str) -> str:
+    kinds = ", ".join(SOURCE_LABELS.get(t, t) for t in dict.fromkeys(source_type.split("/")))
+    return f"{source} ({kinds})"
+
+
+def _add_cost_table(doc: Document, breakdown: PriceBreakdown) -> None:
+    table = doc.add_table(rows=1, cols=4)
+    table.style = "Light Grid Accent 1"
+    for cell, (text, width) in zip(table.rows[0].cells, [("Статья", 4), ("Расчёт", 6), (f"Сумма, {breakdown.currency}", 2.5), ("Основание", 4.5)]):
+        cell.text = text
+        cell.width = Cm(width)
+
+    def add_row(label: str, formula: str, amount: str, source: str, bold: bool = False) -> None:
+        cells = table.add_row().cells
+        for cell, text in zip(cells, (label, formula, amount, source)):
+            cell.text = text
+            for run in cell.paragraphs[0].runs:
+                run.font.size = Pt(9)
+                run.bold = bold
+
+    def add_lines(group: str) -> None:
+        for line in breakdown.lines:
+            if line.group != group:
+                continue
+            formula = line.formula + (f"; в заявке: «{line.evidence}»" if line.evidence else "")
+            add_row(line.label, formula, _money(line.amount), _source_label(line.source, line.source_type))
+
+    add_lines("works")
+    add_row("Итого работы", "", _money(breakdown.works_total), "", bold=True)
+    add_lines("materials")
+    add_lines("minimum")
 
 
 def generate_proposal_docx(
@@ -42,43 +81,46 @@ def generate_proposal_docx(
     meta.add_run(f"№ {proposal_number} от {date.today().strftime('%d.%m.%Y')}")
 
     doc.add_paragraph()
-    doc.add_paragraph(f"Исполнитель: {COMPANY_NAME}")
+    doc.add_paragraph(f"Исполнитель: {breakdown.company or COMPANY_NAME}")
     if extracted.location:
         doc.add_paragraph(f"Объект: г. {extracted.location}")
 
     doc.add_heading("Предмет предложения", level=2)
-    doc.add_paragraph(
-        f"{breakdown.service_name}, объём {breakdown.quantity:g} {breakdown.unit}"
-        + (f", высота объекта до {extracted.height_m:g} м." if extracted.height_m else ".")
-    )
+    subject = breakdown.service_name
+    if breakdown.quantity:
+        subject += f", объём {breakdown.quantity:g} {UNIT_LABELS.get(breakdown.unit, breakdown.unit)}"
+    if extracted.height_m:
+        subject += f", высота объекта до {extracted.height_m:g} м"
+    elif extracted.floor:
+        subject += f", {extracted.floor} этаж"
+    doc.add_paragraph(subject + ".")
 
     doc.add_heading("Расчёт стоимости", level=2)
-    table = doc.add_table(rows=1, cols=2)
-    table.style = "Light Grid Accent 1"
-    table.columns[0].width = Cm(9)
-    table.columns[1].width = Cm(5)
-    hdr = table.rows[0].cells
-    hdr[0].text = "Параметр"
-    hdr[1].text = "Значение"
-
-    rows_data = [
-        ("Услуга", breakdown.service_name),
-        ("Объём работ", f"{breakdown.quantity:g} {breakdown.unit}"),
-        ("Базовая цена за единицу", f"{breakdown.base_price:.2f} {breakdown.currency}"),
-        ("Коэффициент высоты", f"×{breakdown.height_coefficient:g}"),
-        ("Коэффициент срочности", f"×{breakdown.urgency_multiplier:g}"),
-        ("Минимальная сумма заказа применена", "да" if breakdown.minimum_applied else "нет"),
-    ]
-    for label, value in rows_data:
-        row = table.add_row().cells
-        row[0].text = label
-        row[1].text = str(value)
-
-    doc.add_paragraph()
-    total_p = doc.add_paragraph()
-    total_run = total_p.add_run(f"ИТОГО: {breakdown.total:.2f} {breakdown.currency}")
+    if breakdown.status == "manual_estimate":
+        total_p = doc.add_paragraph()
+        total_run = total_p.add_run("Стоимость: требуется осмотр объекта / ручной расчёт.")
+        doc.add_paragraph(f"Причина: {breakdown.manual_reason}.")
+    elif breakdown.status == "needs_clarification":
+        missing = ", ".join(FIELD_LABELS.get(f, f) for f in breakdown.clarify_fields)
+        total_p = doc.add_paragraph()
+        total_run = total_p.add_run(f"Стоимость будет рассчитана после уточнения данных: {missing}.")
+    else:
+        _add_cost_table(doc, breakdown)
+        total_p = doc.add_paragraph()
+        total_run = total_p.add_run(f"ИТОГО: {_money(breakdown.total)} {breakdown.currency}")
+        if breakdown.minimum_applied:
+            doc.add_paragraph(
+                f"Расчётная стоимость работ и материалов ({_money(breakdown.subtotal)} {breakdown.currency}) "
+                f"ниже минимальной суммы заказа, поэтому к оплате принимается минимальная сумма "
+                f"{_money(breakdown.total)} {breakdown.currency}."
+            )
     total_run.bold = True
     total_run.font.size = Pt(13)
+
+    if breakdown.clarify_fields and breakdown.status == "ok":
+        doc.add_heading("Уточнить у клиента", level=2)
+        for f in breakdown.clarify_fields:
+            doc.add_paragraph(FIELD_LABELS.get(f, f), style="List Bullet")
 
     if breakdown.warnings:
         doc.add_heading("⚠ Требует проверки перед отправкой клиенту", level=2)
