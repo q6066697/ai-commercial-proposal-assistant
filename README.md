@@ -245,6 +245,68 @@ In the Streamlit UI the extractor is selectable in the sidebar once these
 variables are set; the CLI demo (`main.py`) keeps the zero-setup rule-based
 path.
 
+## Tender documentation
+
+The client's main time sink is "reading the whole tender to find every
+requirement". The tender track turns a folder of tender documents into a
+requirements sheet with evidence, plus a priced draft proposal:
+
+```
+data/tenders/raw/<id>/  (ТЗ, договор, ... .docx / .pdf / .txt)
+          │  src/tender/loader.py      text in document order, tables kept
+          ▼
+   LLM structured output   src/tender/llm_extract.py — one call per tender
+          │                (long tenders: chunks + deterministic merge)
+          ▼
+   TenderRequirements      schemas/tender_requirements.schema.json
+          │  src/tender/grounding.py  every quote must literally occur in its file
+          ▼
+   price_tender()          src/tender/pricing.py — same price list & rules as
+          │                the calculator; repeats; on_request → unit prices
+          ▼
+   outputs/tenders/<id>/   requirements.json, grounding.json, quote.json, proposal.docx
+```
+
+```bash
+python src/main.py --tender data/tenders/raw/krasnodar_bank         # LLM (LLM_* env vars)
+python src/main.py --tender data/tenders/raw/krasnodar_bank \
+    --requirements data/tenders/gold/krasnodar_bank.json            # no LLM: ready markup
+```
+
+- **Groundedness is checked in code, not by the model.** Each `evidence.quote`
+  must occur in the named file after normalizing whitespace, NBSP, quote/dash
+  style, ё/е and case. Statuses: `verified`, `wrong_doc` (found in another file
+  of the tender, `doc` corrected), `not_found`, `too_short`, `value_mismatch`
+  (the volume/height number is not in its own quote). Unconfirmed facts stay in
+  the JSON with `verified: false`, are marked ⚠ in the proposal and are never
+  priced. `verified` / `match` are not in the schema the LLM receives.
+  Flags carry a quote too and are checked the same way; a flag without a
+  confirmed quote is not shown in the proposal. Gaps (questions about what is
+  *missing*) have no quote by nature.
+- **Which model may see which documents.** Public tenders (published on
+  procurement platforms) may be processed by a cloud model. Client documents
+  (anything received privately from a customer or the client's own files) —
+  only by a local model (Ollama / vLLM on the client's machine or server),
+  never sent to a cloud API.
+- **One tender = several files.** All files go into one request, so a blank in
+  the contract template ("площадью _________ кв. м") is filled from the ТЗ; a
+  "blank"/"missing" gap whose field has a value after combining the files is
+  dropped in code.
+- **Pricing.** Minimum order once per tender, not per line; `repeats` multiply
+  a line; framework contracts (`schedule.mode = on_request`) get a price per
+  unit and a note that the minimum applies to each request. Tenders outside
+  Belarus carry "цена ориентировочная, прайс для РБ".
+- **Documents are not published.** `data/tenders/raw/` and `outputs/tenders/`
+  are git-ignored; `data/tenders/index.json` lists file names and roles only.
+  Legacy `.doc` is converted once with `scripts/convert_doc.py` (Windows +
+  Word, read-only, macros disabled); the pipeline itself reads only
+  `.docx` / `.pdf` / `.txt`.
+- **Gold markup** for evaluation: `data/tenders/gold/<id>.json`, templates from
+  `scripts/make_gold_template.py`, filled by hand. Files marked `"done"` are
+  validated against the schema and their quotes are grounding-checked in
+  `tests/test_tender_models.py`. Metrics (requirement recall, volume accuracy,
+  LLM-as-a-judge) come next.
+
 ## Deployment options
 
 This pipeline can run in three shapes depending on who uses it:
@@ -263,7 +325,19 @@ data/
 ├── eval_cases/           # synthetic cases with expected extraction (for evaluate.py)
 ├── pricing/              # synthetic price list (JSON)
 ├── knowledge/            # synthetic company/services/pricing-rules docs
+├── price_list.json       # price list v0.3 (client-calibrated rules)
+├── tenders/
+│   ├── index.json        # tenders: file names and roles (documents not in git)
+│   ├── gold/             # hand-made reference markup per tender
+│   └── raw/              # third-party tender documents (git-ignored)
+schemas/
+└── tender_requirements.schema.json
+scripts/
+├── convert_doc.py        # one-off .doc -> .docx via Word
+└── make_gold_template.py # empty gold markup per tender
 src/
+├── tender/               # tender track: loader, models, llm_extract,
+│                         # grounding, pricing, proposal, pipeline
 ├── schema.py              # shared Pydantic ExtractedRequest schema
 ├── extractor.py           # request → structured data (rule-based demo)
 ├── llm_extractor.py       # request → structured data (real LLM structured output)
@@ -291,7 +365,9 @@ outputs/                   # generated .docx proposals (demo run artifacts)
   against a cloud API or a self-hosted vLLM server, not wired in by default.
   ✅ Evaluation harness (`src/evaluate.py`) with field-level accuracy against
   synthetic cases, plus a pytest regression guard.
-  ⬜ PDF/DOCX request ingestion (currently text only).
+  ✅ Tender documentation (.docx / .pdf / .txt folders) → requirements with
+  code-checked evidence quotes → priced draft (see "Tender documentation").
+  ⬜ Tender extraction metrics against the gold markup.
   ⬜ RAG over `data/knowledge/` (Qdrant) so pricing/service lookups aren't a
   flat JSON table.
 

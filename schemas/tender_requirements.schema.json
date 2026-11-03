@@ -1,0 +1,156 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tender_requirements.schema.json",
+  "title": "TenderRequirements",
+  "description": "Что система извлекает из тендерной документации на высотные работы. Каждый факт сопровождается цитатой из документа (evidence), чтобы проверять groundedness и не допускать выдуманных требований. Схема составлена по 3 реальным тендерам на мойку фасадов/окон (РФ, Узбекистан).",
+  "type": "object",
+  "$defs": {
+    "evidence": {
+      "type": "object",
+      "description": "Дословная цитата из документа, на которой основан факт.",
+      "properties": {
+        "quote": {"type": "string", "minLength": 3},
+        "doc": {"type": "string", "description": "Имя файла, откуда цитата: ТЗ, договор, извещение"},
+        "verified": {"type": "boolean", "description": "Заполняет только код (src/tender/grounding.py): цитата найдена в тексте указанного файла. LLM это поле не получает."},
+        "match": {"enum": ["verified", "wrong_doc", "not_found", "too_short", "value_mismatch"], "description": "Заполняет только код: результат проверки цитаты. wrong_doc — найдена в другом файле тендера (doc исправлен), value_mismatch — значение факта не встречается в цитате."}
+      },
+      "required": ["quote", "doc"]
+    },
+    "fact": {
+      "type": "object",
+      "properties": {
+        "value": {},
+        "evidence": {"$ref": "#/$defs/evidence"}
+      },
+      "required": ["value", "evidence"]
+    },
+    "requirement": {
+      "type": "object",
+      "properties": {
+        "text": {"type": "string", "description": "Требование своими словами, коротко"},
+        "category": {"enum": ["license", "experience", "personnel_admission", "medical", "equipment", "ppe", "insurance", "site_visit", "safety", "materials", "schedule", "documents", "confidentiality", "other"]},
+        "mandatory": {"type": "boolean"},
+        "cost_impact": {"enum": ["none", "low", "high"], "description": "Влияет ли на цену: ограждение, вывоз отходов, сертификаты"},
+        "evidence": {"$ref": "#/$defs/evidence"}
+      },
+      "required": ["text", "category", "mandatory", "evidence"]
+    }
+  },
+
+  "properties": {
+    "tender": {
+      "type": "object",
+      "properties": {
+        "customer": {"$ref": "#/$defs/fact"},
+        "subject": {"$ref": "#/$defs/fact"},
+        "location": {"$ref": "#/$defs/fact"},
+        "country": {"enum": ["BY", "RU", "UZ", "other"]},
+        "source_docs": {"type": "array", "items": {"type": "string"}}
+      },
+      "required": ["customer", "subject", "source_docs"]
+    },
+
+    "scope": {
+      "type": "array",
+      "description": "Объёмы работ построчно. Один тендер может содержать несколько поверхностей, зданий и сезонов.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "service_id": {"type": ["string", "null"], "description": "id услуги из price_list.json; null, если услуги нет в прайсе"},
+          "description": {"type": "string"},
+          "surface": {"type": ["string", "null"], "description": "остекление, гранит, алюминиевые панели, фасад…"},
+          "side": {"enum": ["outer", "inner", null]},
+          "building": {"type": ["string", "null"]},
+          "volume": {"type": ["number", "null"]},
+          "unit": {"enum": ["m2", "lm", "pcs", null]},
+          "repeats": {"type": "integer", "minimum": 1, "description": "Сколько раз за срок договора (например, 2 раза в год)"},
+          "period": {"type": ["string", "null"], "description": "весна, осень, конкретные даты"},
+          "evidence": {"$ref": "#/$defs/evidence"}
+        },
+        "required": ["description", "volume", "unit", "repeats", "evidence"]
+      }
+    },
+
+    "height": {
+      "type": "object",
+      "properties": {
+        "max_height_m": {"type": ["number", "null"]},
+        "floors": {"type": ["integer", "null"]},
+        "evidence": {"$ref": "#/$defs/evidence"}
+      }
+    },
+
+    "schedule": {
+      "type": "object",
+      "properties": {
+        "start": {"type": ["string", "null"], "format": "date"},
+        "end": {"type": ["string", "null"], "format": "date"},
+        "duration_days": {"type": ["integer", "null"]},
+        "mode": {"enum": ["fixed_dates", "on_request", "periodic"], "description": "on_request = рамочный договор по заявкам заказчика"},
+        "response_time_days": {"type": ["integer", "null"], "description": "Срок исполнения одной заявки"},
+        "working_hours": {"type": ["string", "null"]},
+        "contract_term": {"type": ["string", "null"]},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/evidence"}}
+      },
+      "required": ["mode"]
+    },
+
+    "requirements": {
+      "type": "array",
+      "description": "Требования к участнику, персоналу, безопасности, материалам. Главный чек-лист для подрядчика.",
+      "items": {"$ref": "#/$defs/requirement"}
+    },
+
+    "commercial": {
+      "type": "object",
+      "properties": {
+        "price_includes": {"type": "array", "items": {"type": "string"}, "description": "Что заказчик требует включить в цену: материалы, вывоз отходов, леса"},
+        "advance": {"type": ["boolean", "null"]},
+        "payment_days": {"type": ["integer", "null"]},
+        "payment_basis": {"type": ["string", "null"], "description": "после подписания акта, по счёту…"},
+        "warranty": {"type": ["string", "null"]},
+        "penalties": {"type": ["string", "null"]},
+        "liability": {"type": ["string", "null"], "description": "Ответственность за ущерб имуществу заказчика"},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/evidence"}}
+      }
+    },
+
+    "acceptance": {
+      "type": "object",
+      "properties": {
+        "documents": {"type": "array", "items": {"type": "string"}},
+        "review_days": {"type": ["integer", "null"]},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/evidence"}}
+      }
+    },
+
+    "gaps": {
+      "type": "array",
+      "description": "Чего в документации нет или что противоречит, с готовым вопросом заказчику. Отвечает на боль клиента: «что-то забывается, пропускается».",
+      "items": {
+        "type": "object",
+        "properties": {
+          "field": {"type": "string"},
+          "issue": {"enum": ["missing", "contradiction", "blank_in_template", "ambiguous"]},
+          "question_to_customer": {"type": "string"}
+        },
+        "required": ["field", "issue", "question_to_customer"]
+      }
+    },
+
+    "flags": {
+      "type": "array",
+      "description": "Что подрядчику важно увидеть сразу: обязательный осмотр, высота > 50 м, рамочный договор без гарантированного объёма, полная ответственность за ущерб. Каждый флаг подтверждается цитатой; флаг с неподтверждённой цитатой в КП не выводится.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "text": {"type": "string"},
+          "evidence": {"$ref": "#/$defs/evidence"}
+        },
+        "required": ["text", "evidence"]
+      }
+    }
+  },
+
+  "required": ["tender", "scope", "schedule", "requirements", "gaps", "flags"]
+}

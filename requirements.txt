@@ -1,6 +1,9 @@
 python-docx>=1.1.0
 pytest>=8.0.0
 streamlit>=1.38.0
-pydantic>=2.7.0
+pydantic>=2.11.0
+# Tender documents: PDF text; schema check of tender requirements in tests
+pypdf>=5.0.0
+jsonschema>=4.20.0
 # Optional, only needed for the real LLM extraction path (src/llm_extractor.py):
 # openai>=1.40.0

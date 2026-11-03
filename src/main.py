@@ -4,6 +4,9 @@ CLI entry point for the v0.1 rule-based MVP pipeline.
 Usage:
     python src/main.py data/demo_requests/facade_cleaning.txt
     python src/main.py --all          # run every file in data/demo_requests/
+    python src/main.py --tender data/tenders/raw/krasnodar_bank            # LLM
+    python src/main.py --tender data/tenders/raw/krasnodar_bank \\
+        --requirements data/tenders/gold/krasnodar_bank.json               # no LLM
 """
 from __future__ import annotations
 
@@ -49,9 +52,21 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="AI Commercial Proposal Assistant — demo pipeline")
     parser.add_argument("request_file", nargs="?", help="Path to a request .txt file")
     parser.add_argument("--all", action="store_true", help="Run all files in data/demo_requests/")
+    parser.add_argument("--tender", metavar="FOLDER",
+                        help="Tender folder (data/tenders/raw/<id>): requirements JSON + draft proposal. "
+                             "Uses the LLM (LLM_API_BASE / LLM_API_KEY / LLM_MODEL)")
+    parser.add_argument("--requirements", metavar="JSON",
+                        help="With --tender: skip the LLM and use this requirements file (e.g. gold markup)")
     args = parser.parse_args()
 
-    if args.all:
+    if args.tender:
+        from tender.pipeline import run_tender, summary
+
+        folder = Path(args.tender)
+        result = run_tender(folder, OUTPUTS_DIR / "tenders" / folder.name,
+                            requirements_path=Path(args.requirements) if args.requirements else None)
+        print(summary(result))
+    elif args.all:
         for path in sorted(DEMO_REQUESTS_DIR.glob("*.txt")):
             run_one(path)
     elif args.request_file:

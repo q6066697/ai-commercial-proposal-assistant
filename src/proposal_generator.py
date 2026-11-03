@@ -30,32 +30,36 @@ def _source_label(source: str, source_type: str) -> str:
     return f"{source} ({kinds})"
 
 
-def _add_cost_table(doc: Document, breakdown: PriceBreakdown) -> None:
-    table = doc.add_table(rows=1, cols=4)
+def add_table(doc: Document, columns: list[tuple[str, float]], rows: list[tuple], bold_rows: set[int] = frozenset()):
+    """Small 9pt table; columns = [(header, width_cm)]."""
+    table = doc.add_table(rows=1, cols=len(columns))
     table.style = "Light Grid Accent 1"
-    for cell, (text, width) in zip(table.rows[0].cells, [("Статья", 4), ("Расчёт", 6), (f"Сумма, {breakdown.currency}", 2.5), ("Основание", 4.5)]):
+    for cell, (text, width) in zip(table.rows[0].cells, columns):
         cell.text = text
         cell.width = Cm(width)
-
-    def add_row(label: str, formula: str, amount: str, source: str, bold: bool = False) -> None:
+    for i, values in enumerate(rows):
         cells = table.add_row().cells
-        for cell, text in zip(cells, (label, formula, amount, source)):
-            cell.text = text
+        for cell, text in zip(cells, values):
+            cell.text = str(text)
             for run in cell.paragraphs[0].runs:
                 run.font.size = Pt(9)
-                run.bold = bold
+                run.bold = i in bold_rows
+    return table
 
-    def add_lines(group: str) -> None:
-        for line in breakdown.lines:
-            if line.group != group:
-                continue
-            formula = line.formula + (f"; в заявке: «{line.evidence}»" if line.evidence else "")
-            add_row(line.label, formula, _money(line.amount), _source_label(line.source, line.source_type))
 
-    add_lines("works")
-    add_row("Итого работы", "", _money(breakdown.works_total), "", bold=True)
-    add_lines("materials")
-    add_lines("minimum")
+def add_cost_table(doc: Document, lines: list, currency: str, works_total: float,
+                   evidence_label: str = "в заявке") -> None:
+    """Line-by-line calculation: works, works subtotal, materials, minimum."""
+    rows, bold = [], set()
+    for group in ("works", "subtotal", "materials", "minimum"):
+        if group == "subtotal":
+            bold.add(len(rows))
+            rows.append(("Итого работы", "", _money(works_total), ""))
+            continue
+        for line in (l for l in lines if l.group == group):
+            formula = line.formula + (f"; {evidence_label}: «{line.evidence}»" if line.evidence else "")
+            rows.append((line.label, formula, _money(line.amount), _source_label(line.source, line.source_type)))
+    add_table(doc, [("Статья", 4), ("Расчёт", 6), (f"Сумма, {currency}", 2.5), ("Основание", 4.5)], rows, bold)
 
 
 def generate_proposal_docx(
@@ -105,7 +109,7 @@ def generate_proposal_docx(
         total_p = doc.add_paragraph()
         total_run = total_p.add_run(f"Стоимость будет рассчитана после уточнения данных: {missing}.")
     else:
-        _add_cost_table(doc, breakdown)
+        add_cost_table(doc, breakdown.lines, breakdown.currency, breakdown.works_total)
         total_p = doc.add_paragraph()
         total_run = total_p.add_run(f"ИТОГО: {_money(breakdown.total)} {breakdown.currency}")
         if breakdown.minimum_applied:

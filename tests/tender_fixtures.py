@@ -1,0 +1,92 @@
+"""
+Synthetic tender shared by the tender tests. Modelled on a real two-file
+tender (ТЗ + договор) but paraphrased and anonymised: the real documents are
+third-party and git-ignored. Note the blank area in the contract and the
+real number in the ТЗ, plus a non-breaking space and a line break inside
+quoted fragments -- the grounding check has to survive both.
+"""
+from __future__ import annotations
+
+import copy
+from pathlib import Path
+
+TZ_TEXT = (
+    "Техническое задание\n"
+    "1.1. Услуги по мытью окон с внешней стороны, фасада здания должны производиться "
+    "промышленными альпинистами.\n"
+    "2.2. Работники Исполнителя должны иметь удостоверения промышленного альпиниста.\n"
+    "4.2. В процессе проведения работ Исполнитель обязан обеспечить ограждение опасной зоны\n"
+    "под местом производства работ.\n"
+    "Место выполнения работ: г. Краснодар, ул. Демонстрационная, 32.\n"
+    "Работы необходимо выполнить в период с 23.03.2026г. по 10.04.2026г.\n"
+    "Общая площадь фасада здания составляет 10740,4 кв.м.\n"
+    "Оплата производиться в течении 5-ти банковских дней после подписания актов выполненных работ.\n"
+)
+
+CONTRACT_TEXT = (
+    "ДОГОВОР ПОДРЯДА № _______\n"
+    "КБ «Демо Кредит» ООО, именуемый в дальнейшем «Заказчик», в лице ____________________\n"
+    "1.1. Подрядчик обязуется выполнить работы по мытью фасада общей площадью _________ "
+    "квадратных метров, внешнего остекления методом промышленного альпинизма.\n"
+    "7.8. Подрядчик несет полную имущественную ответственность в случае причинения ущерба "
+    "Заказчику или третьим лицам.\n"
+)
+
+
+def write_tender(folder: Path) -> Path:
+    folder.mkdir(parents=True, exist_ok=True)
+    (folder / "tz.txt").write_text(TZ_TEXT, encoding="utf-8")
+    (folder / "contract.txt").write_text(CONTRACT_TEXT, encoding="utf-8")
+    return folder
+
+
+def ev(quote: str, doc: str = "tz.txt") -> dict:
+    return {"quote": quote, "doc": doc}
+
+
+SAMPLE = {
+    "tender": {
+        "customer": {"value": "КБ «Демо Кредит» ООО", "evidence": ev("КБ «Демо Кредит» ООО, именуемый в дальнейшем «Заказчик»", "contract.txt")},
+        "subject": {"value": "Мытьё фасада и внешнего остекления", "evidence": ev(
+            "Услуги по мытью окон с внешней стороны, фасада здания должны производиться промышленными альпинистами")},
+        "location": {"value": "г. Краснодар", "evidence": ev("Место выполнения работ: г. Краснодар, ул. Демонстрационная, 32")},
+        "country": "RU",
+    },
+    "scope": [{
+        "service_id": "facade_washing", "description": "Мойка фасада", "surface": "фасад", "side": "outer",
+        "building": None, "volume": 10740.4, "unit": "m2", "repeats": 1, "period": None,
+        "evidence": ev("Общая площадь фасада здания составляет 10740,4 кв.м."),
+    }],
+    "height": {"max_height_m": None, "floors": None},
+    "schedule": {
+        "start": "2026-03-23", "end": "2026-04-10", "duration_days": None, "mode": "fixed_dates",
+        "response_time_days": None, "working_hours": None, "contract_term": None,
+        "evidence": [ev("Работы необходимо выполнить в период с 23.03.2026г. по 10.04.2026г.")],
+    },
+    "requirements": [
+        {"text": "Удостоверения промышленного альпиниста у работников", "category": "personnel_admission",
+         "mandatory": True, "cost_impact": "low",
+         "evidence": ev("Работники Исполнителя должны иметь удостоверения промышленного альпиниста")},
+        {"text": "Ограждение опасной зоны", "category": "safety", "mandatory": True, "cost_impact": "low",
+         "evidence": ev("обязан обеспечить ограждение опасной зоны под местом производства работ")},
+    ],
+    "commercial": {
+        "price_includes": [], "advance": False, "payment_days": 5,
+        "payment_basis": "после подписания актов", "warranty": None, "penalties": None,
+        "liability": "Полная имущественная ответственность за ущерб",
+        "evidence": [
+            ev("Оплата производиться в течении 5-ти банковских дней после подписания актов выполненных работ"),
+            ev("Подрядчик несет полную имущественную ответственность в случае причинения ущерба", "contract.txt"),
+        ],
+    },
+    "acceptance": None,
+    "gaps": [{"field": "height", "issue": "missing", "question_to_customer": "Какова высота здания?"}],
+    "flags": [{"text": "Полная ответственность за ущерб имуществу заказчика",
+               "evidence": ev("Подрядчик несет полную имущественную ответственность", "contract.txt")}],
+}
+
+
+def sample(**overrides) -> dict:
+    data = copy.deepcopy(SAMPLE)
+    data.update(overrides)
+    return data

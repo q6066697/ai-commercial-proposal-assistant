@@ -1,0 +1,128 @@
+{
+  "_meta": {
+    "status": "template",
+    "tender_id": "ipu_ran",
+    "annotator": "",
+    "how_to": "Заполнить вручную по документам из data/tenders/raw/<id>/. quote — дословная цитата, doc — имя файла из tender.source_docs. scope — самые подробные строки объёмов, не итоги; разные объёмы по сезонам — отдельные строки с period и repeats=1. Пустые примеры строк удалить. Закончив, поставить status = \"done\"."
+  },
+  "tender": {
+    "customer": {
+      "value": null,
+      "evidence": {
+        "quote": "",
+        "doc": ""
+      }
+    },
+    "subject": {
+      "value": null,
+      "evidence": {
+        "quote": "",
+        "doc": ""
+      }
+    },
+    "location": {
+      "value": null,
+      "evidence": {
+        "quote": "",
+        "doc": ""
+      }
+    },
+    "country": null,
+    "source_docs": [
+      "tz.docx"
+    ]
+  },
+  "scope": [
+    {
+      "service_id": null,
+      "description": "",
+      "surface": null,
+      "side": null,
+      "building": null,
+      "volume": null,
+      "unit": null,
+      "repeats": 1,
+      "period": null,
+      "evidence": {
+        "quote": "",
+        "doc": ""
+      }
+    }
+  ],
+  "height": {
+    "max_height_m": null,
+    "floors": null,
+    "evidence": {
+      "quote": "",
+      "doc": ""
+    }
+  },
+  "schedule": {
+    "start": null,
+    "end": null,
+    "duration_days": null,
+    "mode": null,
+    "response_time_days": null,
+    "working_hours": null,
+    "contract_term": null,
+    "evidence": [
+      {
+        "quote": "",
+        "doc": ""
+      }
+    ]
+  },
+  "requirements": [
+    {
+      "text": "",
+      "category": null,
+      "mandatory": null,
+      "cost_impact": null,
+      "evidence": {
+        "quote": "",
+        "doc": ""
+      }
+    }
+  ],
+  "commercial": {
+    "price_includes": [],
+    "advance": null,
+    "payment_days": null,
+    "payment_basis": null,
+    "warranty": null,
+    "penalties": null,
+    "liability": null,
+    "evidence": [
+      {
+        "quote": "",
+        "doc": ""
+      }
+    ]
+  },
+  "acceptance": {
+    "documents": [],
+    "review_days": null,
+    "evidence": [
+      {
+        "quote": "",
+        "doc": ""
+      }
+    ]
+  },
+  "gaps": [
+    {
+      "field": "",
+      "issue": null,
+      "question_to_customer": ""
+    }
+  ],
+  "flags": [
+    {
+      "text": "",
+      "evidence": {
+        "quote": "",
+        "doc": ""
+      }
+    }
+  ]
+}

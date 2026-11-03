@@ -147,6 +147,30 @@ def _height_tier(height_m: float, tiers: list[dict]) -> tuple[dict, str]:
     return tiers[-1], f"выше {_num(prev_max)} м"
 
 
+def height_rule_for(pl: dict, service: dict) -> Optional[dict]:
+    """The height rule that applies to a service, or None if it is excluded
+    (cargo lift, tree removal) or the price list has no height rule."""
+    rule = service.get("height") or pl["rules"]["height"]
+    if not rule or service["id"] in rule["exclude_services"]:
+        return None
+    return rule
+
+
+def height_coefficient(rule: dict, height_m: Optional[float], floor: Optional[int]) -> tuple[float, str, bool]:
+    """(k, formula for the price line, height known?). A floor is converted
+    to meters via floor_to_m; unknown height takes the top tier."""
+    if height_m is not None:
+        condition = f"высота {_num(height_m)} м"
+    elif floor is not None and rule["floor_to_m"]:
+        height_m = floor * rule["floor_to_m"]
+        condition = f"{floor} этаж × {_num(rule['floor_to_m'])} м = {_num(height_m)} м"
+    if height_m is None:
+        k = rule["tiers"][-1]["k"]
+        return k, f"×{_coef(k)} (высота не указана — принят коэффициент {_coef(k)}, уточнить у клиента)", False
+    tier, span = _height_tier(height_m, rule["tiers"])
+    return tier["k"], f"×{_coef(tier['k'])} ({condition}, ступень «{span}»)", True
+
+
 def _source_path(rule: dict, default: str) -> str:
     return rule.get("path", default)
 
@@ -264,21 +288,10 @@ def calculate_price(extracted: ExtractedRequest, price_list: Optional[dict] = No
 
     # 5. × height (floor converted to meters when only the floor is given).
     height_coeff = 1.0
-    height_rule = service.get("height") or rules["height"]
-    if height_rule and service_id not in height_rule["exclude_services"]:
-        height_m = extracted.height_m
-        if height_m is not None:
-            condition = f"высота {_num(height_m)} м"
-        elif extracted.floor is not None and height_rule["floor_to_m"]:
-            height_m = extracted.floor * height_rule["floor_to_m"]
-            condition = f"{extracted.floor} этаж × {_num(height_rule['floor_to_m'])} м = {_num(height_m)} м"
-        if height_m is not None:
-            tier, span = _height_tier(height_m, height_rule["tiers"])
-            height_coeff = tier["k"]
-            formula = f"×{_coef(height_coeff)} ({condition}, ступень «{span}»)"
-        else:
-            height_coeff = height_rule["tiers"][-1]["k"]
-            formula = f"×{_coef(height_coeff)} (высота не указана — принят коэффициент {_coef(height_coeff)}, уточнить у клиента)"
+    height_rule = height_rule_for(pl, service)
+    if height_rule:
+        height_coeff, formula, known = height_coefficient(height_rule, extracted.height_m, extracted.floor)
+        if not known:
             clarify.insert(0, "height_m")
             warnings.append(f"Высота не указана — принят коэффициент "
                             f"{_num(height_coeff)}, уточнить у клиента.")
