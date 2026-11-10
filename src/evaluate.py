@@ -39,6 +39,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Callable
 
+from env import load_env
 from extractor import extract_rule_based
 from schema import ExtractedRequest
 
@@ -194,6 +195,7 @@ def print_report(report: dict, label: str) -> None:
 
 
 def main() -> None:
+    load_env()
     parser = argparse.ArgumentParser(description="Evaluate the extraction layer against synthetic cases")
     parser.add_argument("--extractor", choices=["rule_based", "llm"], default="rule_based")
     parser.add_argument("--set", dest="case_set", choices=["clean", "hard", "all"], default="clean")

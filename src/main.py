@@ -15,6 +15,7 @@ import json
 import sys
 from pathlib import Path
 
+from env import load_env
 from extractor import extract_rule_based
 from calculator import calculate_price
 from proposal_generator import generate_proposal_docx
@@ -49,6 +50,7 @@ def run_one(request_path: Path) -> None:
 
 
 def main() -> None:
+    load_env()
     parser = argparse.ArgumentParser(description="AI Commercial Proposal Assistant — demo pipeline")
     parser.add_argument("request_file", nargs="?", help="Path to a request .txt file")
     parser.add_argument("--all", action="store_true", help="Run all files in data/demo_requests/")

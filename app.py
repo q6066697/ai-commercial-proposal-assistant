@@ -21,9 +21,12 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
 
+from env import load_env  # noqa: E402
 from extractor import extract_rule_based, extract_with_llm  # noqa: E402
 from calculator import calculate_price  # noqa: E402
 from proposal_generator import generate_proposal_docx  # noqa: E402
+
+load_env()
 
 ROOT = Path(__file__).resolve().parent
 DEMO_REQUESTS_DIR = ROOT / "data" / "demo_requests"

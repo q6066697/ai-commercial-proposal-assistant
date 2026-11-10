@@ -5,5 +5,7 @@ pydantic>=2.11.0
 # Tender documents: PDF text; schema check of tender requirements in tests
 pypdf>=5.0.0
 jsonschema>=4.20.0
+# LLM settings from a git-ignored .env (environment variables take priority)
+python-dotenv>=1.0.0
 # Optional, only needed for the real LLM extraction path (src/llm_extractor.py):
 # openai>=1.40.0

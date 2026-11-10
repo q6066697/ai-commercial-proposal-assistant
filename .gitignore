@@ -10,3 +10,6 @@ outputs/streamlit_generated_proposal.docx
 # the index are published. Pipeline outputs quote those documents too.
 data/tenders/raw/
 outputs/tenders/
+
+# Local secrets (API keys). Never commit.
+.env
