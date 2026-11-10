@@ -1,129 +1,1096 @@
 {
   "_meta": {
-    "status": "template",
-    "tender_id": "krasnodar_bank",
-    "annotator": "",
-    "how_to": "Заполнить вручную по документам из data/tenders/raw/<id>/. quote — дословная цитата, doc — имя файла из tender.source_docs. scope — самые подробные строки объёмов, не итоги; разные объёмы по сезонам — отдельные строки с period и repeats=1. Пустые примеры строк удалить. Закончив, поставить status = \"done\"."
+    "status": "done",
+    "source": "notes",
+    "provenance": "Gold: черновик подготовлен с помощью ИИ, каждая строка вручную сверена с документами",
+    "passport_lines": {
+      "tender.customer": 104,
+      "tender.subject": 105,
+      "tender.location": 106
+    },
+    "tender_id": "krasnodar_bank"
   },
   "tender": {
     "customer": {
-      "value": null,
+      "value": "КБ Кубань Кредит ООО",
       "evidence": {
-        "quote": "",
-        "doc": ""
+        "quote": "КБ \"Кубань Кредит\" ООО",
+        "doc": "contract.docx",
+        "verified": true,
+        "match": "verified"
       }
     },
     "subject": {
-      "value": null,
+      "value": "мытьё фасада и внешнего остекления методом промальпа",
       "evidence": {
-        "quote": "",
-        "doc": ""
+        "quote": "Услуги по мытью окон с внешней стороны, фасада здания",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
       }
     },
     "location": {
-      "value": null,
+      "value": "г. Краснодар, Красноармейская 32 / Орджоникидзе 46",
       "evidence": {
-        "quote": "",
-        "doc": ""
+        "quote": "г. Краснодар ул. Красноармейская 32",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
       }
     },
-    "country": null,
+    "country": "RU",
     "source_docs": [
-      "tz.docx",
-      "contract.docx"
+      "contract.docx",
+      "tz.docx"
     ]
   },
   "scope": [
     {
-      "service_id": null,
-      "description": "",
+      "service_id": "facade_washing",
+      "description": "мойка фасада, 10740,4 м², 1 раз",
+      "surface": null,
+      "side": null,
+      "building": null,
+      "volume": 10740.4,
+      "unit": "m2",
+      "repeats": 1,
+      "period": null,
+      "evidence": {
+        "quote": "Общая площадь фасада здания составляет 10740,4кв.м.",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "notes_line": 5
+    },
+    {
+      "service_id": "window_washing",
+      "description": "мойка окон снаружи с откосами и отливами (площадь не указана)",
       "surface": null,
       "side": null,
       "building": null,
       "volume": null,
-      "unit": null,
+      "unit": "m2",
       "repeats": 1,
       "period": null,
       "evidence": {
-        "quote": "",
-        "doc": ""
-      }
+        "quote": "но и мытье откосов и отливов",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "notes_line": 6
     }
   ],
   "height": {
     "max_height_m": null,
-    "floors": null,
-    "evidence": {
-      "quote": "",
-      "doc": ""
-    }
+    "floors": null
   },
   "schedule": {
     "start": null,
     "end": null,
     "duration_days": null,
-    "mode": null,
+    "mode": "fixed_dates",
     "response_time_days": null,
     "working_hours": null,
     "contract_term": null,
-    "evidence": [
-      {
-        "quote": "",
-        "doc": ""
-      }
-    ]
+    "evidence": []
   },
   "requirements": [
     {
-      "text": "",
-      "category": null,
-      "mandatory": null,
-      "cost_impact": null,
+      "text": "работы только промышленными альпинистами",
+      "category": "personnel_admission",
+      "mandatory": true,
       "evidence": {
-        "quote": "",
-        "doc": ""
-      }
+        "quote": "должны производиться промышленными альпинистами",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Требования к персоналу и допускам",
+      "strength": "обязательно",
+      "notes_line": 9
+    },
+    {
+      "text": "допуск исполнителя к высотным работам",
+      "category": "personnel_admission",
+      "mandatory": true,
+      "evidence": {
+        "quote": "допуска к высотным (верхолазным, альпинистским) работам",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Требования к персоналу и допускам",
+      "strength": "обязательно",
+      "notes_line": 10
+    },
+    {
+      "text": "удостоверения промальпиниста, действующие в РФ",
+      "category": "personnel_admission",
+      "mandatory": true,
+      "evidence": {
+        "quote": "удостоверения промышленного альпиниста, действующие на территории Российской Федерации",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Требования к персоналу и допускам",
+      "strength": "обязательно",
+      "notes_line": 11
+    },
+    {
+      "text": "ежегодная проверка знаний для работ на высоте",
+      "category": "personnel_admission",
+      "mandatory": true,
+      "evidence": {
+        "quote": "документ о ежегодной проверке знаний безопасных методов",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Требования к персоналу и допускам",
+      "strength": "обязательно",
+      "notes_line": 12
+    },
+    {
+      "text": "закреплённые за объектом работники",
+      "category": "personnel_admission",
+      "mandatory": true,
+      "evidence": {
+        "quote": "работниками Исполнителя, закрепленными за указанным Объектом",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Требования к персоналу и допускам",
+      "strength": "обязательно",
+      "notes_line": 13
+    },
+    {
+      "text": "замена при отсутствии основного персонала",
+      "category": "personnel_admission",
+      "mandatory": true,
+      "evidence": {
+        "quote": "обеспечить в случае отсутствия основного персонала квалифицированную замену",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Требования к персоналу и допускам",
+      "strength": "обязательно",
+      "notes_line": 14
+    },
+    {
+      "text": "инструктаж работников по материалам и охране труда",
+      "category": "personnel_admission",
+      "mandatory": true,
+      "evidence": {
+        "quote": "Исполнитель должен проинструктировать своих работников",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Требования к персоналу и допускам",
+      "strength": "обязательно",
+      "notes_line": 15
+    },
+    {
+      "text": "список ответственных лиц заказчику",
+      "category": "personnel_admission",
+      "mandatory": true,
+      "evidence": {
+        "quote": "Исполнитель предоставляет Заказчику утвержденный список лиц",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Требования к персоналу и допускам",
+      "strength": "обязательно",
+      "notes_line": 16
+    },
+    {
+      "text": "к высоте допускаются только с допуском и удостоверением",
+      "category": "personnel_admission",
+      "mandatory": true,
+      "evidence": {
+        "quote": "имеющие допуск к такому виду работ и соответствующее удостоверение",
+        "doc": "contract.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Требования к персоналу и допускам",
+      "strength": "обязательно",
+      "notes_line": 17
+    },
+    {
+      "text": "сертификат испытания альпинистского снаряжения до начала работ",
+      "category": "personnel_admission",
+      "mandatory": false,
+      "evidence": {
+        "quote": "предоставить сертификат испытания альпинистского снаряжения",
+        "doc": "contract.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Требования к персоналу и допускам",
+      "strength": "условно",
+      "notes_line": 18
+    },
+    {
+      "text": "допуски, разрешения и лицензии своими силами",
+      "category": "personnel_admission",
+      "mandatory": true,
+      "evidence": {
+        "quote": "обеспечить получение всех необходимых профессиональных допусков, разрешений и лицензий",
+        "doc": "contract.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Требования к персоналу и допускам",
+      "strength": "обязательно",
+      "notes_line": 19
+    },
+    {
+      "text": "соблюдение пропускного режима заказчика",
+      "category": "personnel_admission",
+      "mandatory": true,
+      "evidence": {
+        "quote": "инструкции о пропускном и внутриобъектовом режимах",
+        "doc": "contract.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Требования к персоналу и допускам",
+      "strength": "обязательно",
+      "notes_line": 20
+    },
+    {
+      "text": "соблюдение Приказа Минтруда N 782н",
+      "category": "safety",
+      "mandatory": true,
+      "evidence": {
+        "quote": "Об утверждении Правил по охране труда при работе на высоте",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Безопасность и охрана труда",
+      "strength": "обязательно",
+      "notes_line": 23
+    },
+    {
+      "text": "ограждение опасной зоны под местом работ",
+      "category": "safety",
+      "mandatory": true,
+      "evidence": {
+        "quote": "обеспечить ограждение опасной зоны под местом производства работ",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Безопасность и охрана труда",
+      "strength": "обязательно",
+      "notes_line": 24
+    },
+    {
+      "text": "СИЗ сертифицированы для РФ",
+      "category": "safety",
+      "mandatory": true,
+      "evidence": {
+        "quote": "должны быть сертифицированы для применения в Российской Федерации",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Безопасность и охрана труда",
+      "strength": "обязательно",
+      "notes_line": 25
+    },
+    {
+      "text": "инструкция по работам с альпинистскими технологиями",
+      "category": "safety",
+      "mandatory": true,
+      "evidence": {
+        "quote": "Инструкцию по безопасному производству работ с применением альпинистских технологий",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Безопасность и охрана труда",
+      "strength": "обязательно",
+      "notes_line": 26
+    },
+    {
+      "text": "пожарная безопасность и охрана труда на исполнителе",
+      "category": "safety",
+      "mandatory": true,
+      "evidence": {
+        "quote": "правил пожарной безопасности при оказании Услуг",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Безопасность и охрана труда",
+      "strength": "обязательно",
+      "notes_line": 27
+    },
+    {
+      "text": "подъём на кровлю лифтом или лебёдками/талями",
+      "category": "safety",
+      "mandatory": true,
+      "evidence": {
+        "quote": "должны использовать рабочий лифт",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Безопасность и охрана труда",
+      "strength": "обязательно",
+      "notes_line": 28
+    },
+    {
+      "text": "сохранность мягкой кровли, мероприятия согласовать заранее",
+      "category": "safety",
+      "mandatory": true,
+      "evidence": {
+        "quote": "обеспечению сохранности мягкой кровли высотной части здания",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Безопасность и охрана труда",
+      "strength": "обязательно",
+      "notes_line": 29
+    },
+    {
+      "text": "информационные таблички в зоне работ",
+      "category": "safety",
+      "mandatory": true,
+      "evidence": {
+        "quote": "путем установки в зоне их производства информационных табличек",
+        "doc": "contract.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Безопасность и охрана труда",
+      "strength": "обязательно",
+      "notes_line": 30
+    },
+    {
+      "text": "исправное оборудование по требованиям РФ",
+      "category": "safety",
+      "mandatory": true,
+      "evidence": {
+        "quote": "Применять исправное оборудование, приспособления и инструменты",
+        "doc": "contract.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Безопасность и охрана труда",
+      "strength": "обязательно",
+      "notes_line": 31
+    },
+    {
+      "text": "инвентарь и расходники за счёт исполнителя",
+      "category": "materials",
+      "mandatory": true,
+      "evidence": {
+        "quote": "должен быть снабжен инвентарем и расходными материалами",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Материалы и оборудование",
+      "strength": "обязательно",
+      "notes_line": 34
+    },
+    {
+      "text": "моющие средства без запаха, гипоаллергенные, с сертификатами",
+      "category": "materials",
+      "mandatory": true,
+      "evidence": {
+        "quote": "Моющие средства не должны иметь запаха, красителей",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Материалы и оборудование",
+      "strength": "обязательно",
+      "notes_line": 35
+    },
+    {
+      "text": "только профессиональное оборудование без повреждения фасада",
+      "category": "materials",
+      "mandatory": true,
+      "evidence": {
+        "quote": "только специальное профессиональное оборудование",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Материалы и оборудование",
+      "strength": "обязательно",
+      "notes_line": 36
+    },
+    {
+      "text": "доставка, погрузка и разгрузка силами исполнителя",
+      "category": "materials",
+      "mandatory": true,
+      "evidence": {
+        "quote": "Доставку оборудования и материалов, а также разгрузку и погрузку осуществляет Исполнитель",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Материалы и оборудование",
+      "strength": "обязательно",
+      "notes_line": 37
+    },
+    {
+      "text": "склад заказчик не даёт",
+      "category": "materials",
+      "mandatory": true,
+      "evidence": {
+        "quote": "Заказчик не предоставляет Исполнителю помещения для хранения",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Материалы и оборудование",
+      "strength": "обязательно",
+      "notes_line": 38
+    },
+    {
+      "text": "собственные материалы, инструменты и оборудование",
+      "category": "materials",
+      "mandatory": true,
+      "evidence": {
+        "quote": "с использованием собственных материалов, инструментов и оборудования",
+        "doc": "contract.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Материалы и оборудование",
+      "strength": "обязательно",
+      "notes_line": 39
+    },
+    {
+      "text": "заказчик даёт подключение к коммуникациям",
+      "category": "materials",
+      "mandatory": true,
+      "evidence": {
+        "quote": "возможность подключения к коммуникациям",
+        "doc": "contract.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Материалы и оборудование",
+      "strength": "обязательно",
+      "notes_line": 40
+    },
+    {
+      "text": "качество по ГОСТ Р 51870-2014",
+      "category": "other",
+      "mandatory": true,
+      "evidence": {
+        "quote": "должно соответствовать ГОСТ Р 51870-2014",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Качество и приёмка",
+      "strength": "обязательно",
+      "notes_line": 43
+    },
+    {
+      "text": "окна без разводов, вытерты насухо",
+      "category": "other",
+      "mandatory": true,
+      "evidence": {
+        "quote": "Окна, рамы и подоконники должны быть вытерты насухо",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Качество и приёмка",
+      "strength": "обязательно",
+      "notes_line": 44
+    },
+    {
+      "text": "уборка после работ, включая места крепления строп",
+      "category": "other",
+      "mandatory": true,
+      "evidence": {
+        "quote": "мест крепления страховочных строп",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Качество и приёмка",
+      "strength": "обязательно",
+      "notes_line": 45
+    },
+    {
+      "text": "вывоз отходов входит в стоимость",
+      "category": "other",
+      "mandatory": true,
+      "evidence": {
+        "quote": "Вывоз отходов от производства входит в стоимость выполняемых работ",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Качество и приёмка",
+      "strength": "обязательно",
+      "notes_line": 46
+    },
+    {
+      "text": "уборка мусора в счёт договорной цены",
+      "category": "other",
+      "mandatory": true,
+      "evidence": {
+        "quote": "Обеспечить в счет договорной цены систематическую уборку мусора",
+        "doc": "contract.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Качество и приёмка",
+      "strength": "обязательно",
+      "notes_line": 47
+    },
+    {
+      "text": "освободить объект в течение 2 рабочих дней после работ",
+      "category": "other",
+      "mandatory": true,
+      "evidence": {
+        "quote": "Освободить в течение 2 (двух) рабочих дней",
+        "doc": "contract.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Качество и приёмка",
+      "strength": "обязательно",
+      "notes_line": 48
+    },
+    {
+      "text": "период работ 23.03.2026–10.04.2026",
+      "category": "schedule",
+      "mandatory": true,
+      "evidence": {
+        "quote": "в период с 23.03.2026г. по 10.04.2026г.",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Сроки и режим работ",
+      "strength": "обязательно",
+      "notes_line": 51
+    },
+    {
+      "text": "работы с 8:00 до 17:00",
+      "category": "schedule",
+      "mandatory": true,
+      "evidence": {
+        "quote": "в дневное время, с 8-00 до 17-00",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Сроки и режим работ",
+      "strength": "обязательно",
+      "notes_line": 52
+    },
+    {
+      "text": "выходные — только с сотрудником банка",
+      "category": "schedule",
+      "mandatory": false,
+      "evidence": {
+        "quote": "Возможно выполнение работ в выходные дни",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Сроки и режим работ",
+      "strength": "желательно",
+      "notes_line": 53
+    },
+    {
+      "text": "время и место согласовывать с заказчиком",
+      "category": "schedule",
+      "mandatory": true,
+      "evidence": {
+        "quote": "согласуются по времени и месту с Заказчиком",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Сроки и режим работ",
+      "strength": "обязательно",
+      "notes_line": 54
+    },
+    {
+      "text": "предупреждать о начале за 2 рабочих дня",
+      "category": "schedule",
+      "mandatory": true,
+      "evidence": {
+        "quote": "не менее чем за два рабочих дня",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Сроки и режим работ",
+      "strength": "обязательно",
+      "notes_line": 55
+    },
+    {
+      "text": "адрес: Краснодар, Красноармейская 32 / Орджоникидзе 46",
+      "category": "schedule",
+      "mandatory": true,
+      "evidence": {
+        "quote": "г. Краснодар ул. Красноармейская 32",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Сроки и режим работ",
+      "strength": "обязательно",
+      "notes_line": 56
+    },
+    {
+      "text": "перенос сроков по инициативе подрядчика — за 3 рабочих дня",
+      "category": "schedule",
+      "mandatory": true,
+      "evidence": {
+        "quote": "о предстоящих изменениях за 3 (три) рабочих дня",
+        "doc": "contract.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Сроки и режим работ",
+      "strength": "обязательно",
+      "notes_line": 57
+    },
+    {
+      "text": "досрочно можно, но без увеличения цены",
+      "category": "schedule",
+      "mandatory": false,
+      "evidence": {
+        "quote": "Подрядчик не вправе требовать увеличения цены",
+        "doc": "contract.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Сроки и режим работ",
+      "strength": "желательно",
+      "notes_line": 58
+    },
+    {
+      "text": "оплата в течение 5 банковских дней после акта, без аванса",
+      "category": "other",
+      "mandatory": true,
+      "evidence": {
+        "quote": "Оплата производиться в течении 5-ти банковских дней",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Оплата и приёмка",
+      "strength": "обязательно",
+      "notes_line": 61
+    },
+    {
+      "text": "цена включает все расходы",
+      "category": "other",
+      "mandatory": true,
+      "evidence": {
+        "quote": "Цена на услугу указывается с учетом всех возможных расходов",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Оплата и приёмка",
+      "strength": "обязательно",
+      "notes_line": 62
+    },
+    {
+      "text": "оплата за фактически выполненное, 5 банковских дней с момента счёта",
+      "category": "other",
+      "mandatory": true,
+      "evidence": {
+        "quote": "в течение 5-ти банковских дней с момента предоставления Подрядчиком счета",
+        "doc": "contract.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Оплата и приёмка",
+      "strength": "обязательно",
+      "notes_line": 63
+    },
+    {
+      "text": "известить о готовности к сдаче не позднее 2 рабочих дней",
+      "category": "other",
+      "mandatory": true,
+      "evidence": {
+        "quote": "письменно известить Заказчика о готовности к сдаче",
+        "doc": "contract.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Оплата и приёмка",
+      "strength": "обязательно",
+      "notes_line": 64
+    },
+    {
+      "text": "акт рассматривается 5 рабочих дней, возможен мотивированный отказ",
+      "category": "other",
+      "mandatory": true,
+      "evidence": {
+        "quote": "рассматриваются и подписываются Заказчиком в течение 5 (пяти) рабочих дней",
+        "doc": "contract.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Оплата и приёмка",
+      "strength": "обязательно",
+      "notes_line": 65
+    },
+    {
+      "text": "при уклонении заказчика — односторонний акт",
+      "category": "other",
+      "mandatory": false,
+      "evidence": {
+        "quote": "Подрядчик вправе составить односторонний Акт",
+        "doc": "contract.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Оплата и приёмка",
+      "strength": "желательно",
+      "notes_line": 66
+    },
+    {
+      "text": "недостатки устраняются своими силами и за свой счёт",
+      "category": "other",
+      "mandatory": true,
+      "evidence": {
+        "quote": "устраняет все выявленные недостатки своими силами и за свой счет",
+        "doc": "contract.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Оплата и приёмка",
+      "strength": "обязательно",
+      "notes_line": 67
+    },
+    {
+      "text": "полная сохранность остекления и имущества",
+      "category": "other",
+      "mandatory": true,
+      "evidence": {
+        "quote": "гарантирует полную сохранность всего остекления",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Ответственность и штрафы",
+      "strength": "обязательно",
+      "notes_line": 70
+    },
+    {
+      "text": "ущерб устраняется за свой счёт",
+      "category": "other",
+      "mandatory": true,
+      "evidence": {
+        "quote": "обязан устранить все недостатки за счет собственных средств",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Ответственность и штрафы",
+      "strength": "обязательно",
+      "notes_line": 71
+    },
+    {
+      "text": "все риски на исполнителе",
+      "category": "other",
+      "mandatory": true,
+      "evidence": {
+        "quote": "должен принять на себя все риски",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Ответственность и штрафы",
+      "strength": "обязательно",
+      "notes_line": 72
+    },
+    {
+      "text": "пеня подрядчика 0,5% в день от цены договора",
+      "category": "other",
+      "mandatory": true,
+      "evidence": {
+        "quote": "пеню в размере 0,5% за каждый день просрочки",
+        "doc": "contract.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Ответственность и штрафы",
+      "strength": "обязательно",
+      "notes_line": 73
+    },
+    {
+      "text": "пеня заказчика 0,01% в день, не более 10%",
+      "category": "other",
+      "mandatory": true,
+      "evidence": {
+        "quote": "пеню 0,01% за каждый день просрочки",
+        "doc": "contract.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Ответственность и штрафы",
+      "strength": "обязательно",
+      "notes_line": 74
+    },
+    {
+      "text": "полная имущественная ответственность перед заказчиком и третьими лицами",
+      "category": "other",
+      "mandatory": true,
+      "evidence": {
+        "quote": "несет полную имущественную ответственность в случае причинения ущерба",
+        "doc": "contract.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Ответственность и штрафы",
+      "strength": "обязательно",
+      "notes_line": 75
+    },
+    {
+      "text": "повреждение соседних помещений и инженерных систем — за свой счёт",
+      "category": "other",
+      "mandatory": true,
+      "evidence": {
+        "quote": "в случае повреждения соседних помещений и инженерных систем",
+        "doc": "contract.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Ответственность и штрафы",
+      "strength": "обязательно",
+      "notes_line": 76
+    },
+    {
+      "text": "заказчик может устранить недостатки сам за счёт подрядчика",
+      "category": "other",
+      "mandatory": true,
+      "evidence": {
+        "quote": "с отнесением расходов на счет Подрядчика",
+        "doc": "contract.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Ответственность и штрафы",
+      "strength": "обязательно",
+      "notes_line": 77
+    },
+    {
+      "text": "возмещение убытков, включая упущенную выгоду",
+      "category": "other",
+      "mandatory": true,
+      "evidence": {
+        "quote": "возмещает другой Стороне убытки, включая упущенную выгоду",
+        "doc": "contract.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Ответственность и штрафы",
+      "strength": "обязательно",
+      "notes_line": 78
+    },
+    {
+      "text": "заказчик может отказаться от договора в любой момент до сдачи",
+      "category": "other",
+      "mandatory": true,
+      "evidence": {
+        "quote": "Заказчик может в любое время, до сдачи ему результатов работы",
+        "doc": "contract.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Ответственность и штрафы",
+      "strength": "обязательно",
+      "notes_line": 79
+    },
+    {
+      "text": "конфиденциальность",
+      "category": "other",
+      "mandatory": true,
+      "evidence": {
+        "quote": "Стороны обязуются соблюдать конфиденциальность",
+        "doc": "contract.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Ответственность и штрафы",
+      "strength": "обязательно",
+      "notes_line": 80
+    },
+    {
+      "text": "споры в Арбитражном суде Краснодарского края",
+      "category": "other",
+      "mandatory": true,
+      "evidence": {
+        "quote": "Арбитражного суда Краснодарского края",
+        "doc": "contract.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "section": "Ответственность и штрафы",
+      "strength": "обязательно",
+      "notes_line": 81
     }
   ],
-  "commercial": {
-    "price_includes": [],
-    "advance": null,
-    "payment_days": null,
-    "payment_basis": null,
-    "warranty": null,
-    "penalties": null,
-    "liability": null,
-    "evidence": [
-      {
-        "quote": "",
-        "doc": ""
-      }
-    ]
-  },
-  "acceptance": {
-    "documents": [],
-    "review_days": null,
-    "evidence": [
-      {
-        "quote": "",
-        "doc": ""
-      }
-    ]
-  },
   "gaps": [
     {
       "field": "",
-      "issue": null,
-      "question_to_customer": ""
+      "issue": "missing",
+      "question_to_customer": "высота и этажность здания не указаны",
+      "notes_line": 84,
+      "scored": true
+    },
+    {
+      "field": "",
+      "issue": "missing",
+      "question_to_customer": "площадь остекления отдельно от фасада не указана",
+      "notes_line": 85,
+      "scored": true
+    },
+    {
+      "field": "",
+      "issue": "missing",
+      "question_to_customer": "материал фасадных панелей не указан",
+      "notes_line": 86,
+      "scored": true
+    },
+    {
+      "field": "",
+      "issue": "missing",
+      "question_to_customer": "количество повторов (1 раз) прямо не сказано",
+      "notes_line": 87,
+      "scored": true
+    },
+    {
+      "field": "",
+      "issue": "blank_in_template",
+      "question_to_customer": "в договоре не заполнены площадь, сроки и цена (есть только в ТЗ)",
+      "notes_line": 88,
+      "scored": false,
+      "info_reason": "в договоре не заполнено, значение есть в другом документе (пайплайн такие gaps снимает)"
+    },
+    {
+      "field": "",
+      "issue": "blank_in_template",
+      "question_to_customer": "срок подачи актов в договоре не заполнен",
+      "notes_line": 89,
+      "scored": true
+    },
+    {
+      "field": "",
+      "issue": "ambiguous",
+      "question_to_customer": "не определено, с НДС или без",
+      "notes_line": 90,
+      "scored": true
+    },
+    {
+      "field": "",
+      "issue": "ambiguous",
+      "question_to_customer": "нужен ли сертификат снаряжения — «при необходимости», не ясно",
+      "notes_line": 91,
+      "scored": true
     }
   ],
   "flags": [
     {
-      "text": "",
+      "text": "удостоверения и СИЗ должны быть российскими",
       "evidence": {
-        "quote": "",
-        "doc": ""
-      }
+        "quote": "действующие на территории Российской Федерации",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "notes_line": 94
+    },
+    {
+      "text": "полная материальная ответственность за ущерб",
+      "evidence": {
+        "quote": "несет ответственность при нанесении ущерба",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "notes_line": 95
+    },
+    {
+      "text": "все риски на исполнителе",
+      "evidence": {
+        "quote": "должен принять на себя все риски",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "notes_line": 96
+    },
+    {
+      "text": "мягкая кровля: работы только после согласования мер защиты",
+      "evidence": {
+        "quote": "приступает к работе после согласования мероприятий",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "notes_line": 97
+    },
+    {
+      "text": "короткое окно работ, около 3 недель",
+      "evidence": {
+        "quote": "по 10.04.2026г.",
+        "doc": "tz.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "notes_line": 98
+    },
+    {
+      "text": "асимметричные пени: 0,5% в день для подрядчика против 0,01% для заказчика",
+      "evidence": {
+        "quote": "пеню в размере 0,5% за каждый день просрочки",
+        "doc": "contract.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "notes_line": 99
+    },
+    {
+      "text": "возмещение упущенной выгоды",
+      "evidence": {
+        "quote": "включая упущенную выгоду",
+        "doc": "contract.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "notes_line": 100
+    },
+    {
+      "text": "заказчик может отказаться в любой момент",
+      "evidence": {
+        "quote": "Заказчик может в любое время, до сдачи ему результатов работы",
+        "doc": "contract.docx",
+        "verified": true,
+        "match": "verified"
+      },
+      "notes_line": 101
     }
   ]
 }

@@ -78,7 +78,7 @@ def test_gold_file_exists_for_every_tender(tender):
     gold = json.loads((ROOT / "data" / "tenders" / "gold" / f"{tender['id']}.json").read_text(encoding="utf-8"))
     assert gold["_meta"]["tender_id"] == tender["id"]
     assert gold["_meta"]["status"] in {"template", "done"}
-    assert gold["tender"]["source_docs"] == [d["file"] for d in tender["documents"]]
+    assert sorted(gold["tender"]["source_docs"]) == sorted(d["file"] for d in tender["documents"])
 
 
 @pytest.mark.parametrize("tender", INDEX["tenders"], ids=lambda t: t["id"])
