@@ -39,6 +39,13 @@ the documents by the same grounding check the model output goes through. The
 draft of the gold markup was prepared with AI help; every line was then
 checked by hand against the documents.
 
+**What counts as a requirement** (gold markup and reports): anything that
+binds the contractor or limits the contractor's rights — including
+penalties, liability, the customer's right to refuse the contract, the
+competent court and confidentiality. The customer's own obligations, force
+majeure, the contract's entry into force and notices of reorganization are
+not requirements.
+
 **Matching, no LLM judge:** a model fact matches a gold line if their verbatim
 quotes overlap in the source text (≥50% of the shorter one); fallback — by
 text (word stems). Only facts with a confirmed quote count, and groundedness
