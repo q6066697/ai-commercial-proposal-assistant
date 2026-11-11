@@ -15,7 +15,81 @@ anything goes to a customer.
 >
 > **All company data, prices, and documents in this repository are synthetic**
 > and created for demonstration purposes only. No real client data, pricing,
-> or business documents are included.
+> or business documents are included. The only exception is the tender
+> evaluation: its gold markup quotes short fragments of public tender
+> documents (the documents themselves are not in the repository).
+
+## Project status
+
+Working prototype. A pilot with the real client (the rope-access company the
+scenario comes from) is planned after the end of their working season; until
+then the pipeline has been run only on synthetic requests and public tender
+documents.
+
+## Evaluation
+
+What is measured: extraction of contractor requirements from real public
+tender documentation — one tender, a technical specification (ТЗ) plus a draft
+contract, facade and window washing of a bank office in Krasnodar
+(`krasnodar_bank`).
+
+**Gold markup:** `data/tenders/gold/krasnodar_bank.json`, v1.1 — 63
+requirements, 2 scope lines, 8 flags, 8 gaps; every quote is checked against
+the documents by the same grounding check the model output goes through. The
+draft of the gold markup was prepared with AI help; every line was then
+checked by hand against the documents.
+
+**Matching, no LLM judge:** a model fact matches a gold line if their verbatim
+quotes overlap in the source text (≥50% of the shorter one); fallback — by
+text (word stems). Only facts with a confirmed quote count, and groundedness
+is strict: a quote counts only if it occurs in its file after normalizing
+whitespace, quote style, ё/е and case.
+
+Two free models on OpenRouter, 3 runs each, mean (min–max)
+([full report](eval/results/krasnodar_bank.md)):
+
+| Metric | `dots-3-note-preview:free` | `nemotron-3.5-super-vl:free` |
+|---|---|---|
+| Requirement recall (all model facts with a quote) | 39% (33–44%) | 38% (32–43%) |
+| Requirement recall, strict (`requirements[]` only) | 23% (17–32%) | 21% (17–29%) |
+| Precision of `requirements[]` | 90% (88–92%) | 96% (89–100%) |
+| Scope volumes (service + area + repeats) | 100% | 100% |
+| Groundedness (confirmed quotes) | 79% (71–93%) | 93% (89–97%) |
+| Time per run | 441 s (266–748) | 116 s (88–157) |
+
+What the numbers show:
+
+- **Recall is the weak spot.** Both models find about 40% of the 63
+  requirements. Across all 6 runs, materials and equipment (17%) and
+  liability and penalties (24%) are found least often, staff admissions
+  (57%) most often.
+- **What is found is almost always right.** Precision is 90–96%, and the
+  "extra" items are mostly real clauses outside the gold markup — two of them
+  were added to the gold after manual review (v1.0 → v1.1).
+- **Scope volumes are 100% in all 6 runs:** the facade area comes from the ТЗ
+  although the contract leaves it blank, and the window area, which neither
+  document gives, stays empty instead of being invented.
+- **No invented quotes.** Every unconfirmed quote (32 in 6 runs) is at least
+  71% similar to the document text, and 28 of them ≥90% — typos, swapped
+  words, English words inside Russian sentences, an extra space, a lost table
+  separator. They are still not counted: groundedness stays strict.
+
+Limitations: one tender; free models only; gaps are matched by text only, so
+that number is approximate; the matching rule for one-word gold lines was
+fixed after the first run — before/after numbers on the same runs are in the
+report.
+
+Reproduce (the tender documents are third-party and not in the repository:
+put them in `data/tenders/raw/krasnodar_bank/`, file names are in
+`data/tenders/index.json`):
+
+```bash
+# fresh runs: 3 for the model in LLM_MODEL (.env or environment), then the report
+LLM_MODEL=nvidia/nemotron-3.5-super-vl:free python scripts/eval_tender.py krasnodar_bank --runs 3
+
+# re-evaluate runs already saved in outputs/tenders/ (git-ignored), no LLM calls
+python scripts/eval_tender.py krasnodar_bank --no-llm
+```
 
 ## Why this exists
 
@@ -146,7 +220,7 @@ breakdown, download the `.docx`. This is the deployment shape that fits a
 single person working from one computer — see "Deployment options" below for
 when a server is actually needed instead.
 
-### Evaluation
+### Evaluation: single requests (synthetic cases)
 
 Extraction accuracy is measured against fixed sets of synthetic cases rather
 than eyeballed, and reported per field, per case type, with latency (and,
@@ -301,11 +375,11 @@ python src/main.py --tender data/tenders/raw/krasnodar_bank \
   Legacy `.doc` is converted once with `scripts/convert_doc.py` (Windows +
   Word, read-only, macros disabled); the pipeline itself reads only
   `.docx` / `.pdf` / `.txt`.
-- **Gold markup** for evaluation: `data/tenders/gold/<id>.json`, templates from
-  `scripts/make_gold_template.py`, filled by hand. Files marked `"done"` are
-  validated against the schema and their quotes are grounding-checked in
-  `tests/test_tender_models.py`. Metrics (requirement recall, volume accuracy,
-  LLM-as-a-judge) come next.
+- **Gold markup** for evaluation: `data/tenders/gold/<id>.json`, written as
+  notes (`<id>_notes.md`) and converted with `scripts/notes_to_gold.py`, which
+  lists every quote it cannot find instead of fixing it. Files marked `"done"`
+  are validated against the schema and their quotes are grounding-checked in
+  `tests/test_tender_models.py`. Metrics: see "Evaluation" above.
 
 ## Deployment options
 
@@ -328,13 +402,16 @@ data/
 ├── price_list.json       # price list v0.3 (client-calibrated rules)
 ├── tenders/
 │   ├── index.json        # tenders: file names and roles (documents not in git)
-│   ├── gold/             # hand-made reference markup per tender
+│   ├── gold/             # hand-made reference markup per tender (notes + JSON)
 │   └── raw/              # third-party tender documents (git-ignored)
+eval/results/             # tender eval reports (krasnodar_bank.md)
 schemas/
 └── tender_requirements.schema.json
 scripts/
 ├── convert_doc.py        # one-off .doc -> .docx via Word
-└── make_gold_template.py # empty gold markup per tender
+├── make_gold_template.py # empty gold markup per tender
+├── notes_to_gold.py      # gold notes (.md) -> gold JSON, quotes checked
+└── eval_tender.py        # extraction runs + eval report
 src/
 ├── tender/               # tender track: loader, models, llm_extract,
 │                         # grounding, pricing, proposal, pipeline
@@ -367,7 +444,15 @@ outputs/                   # generated .docx proposals (demo run artifacts)
   synthetic cases, plus a pytest regression guard.
   ✅ Tender documentation (.docx / .pdf / .txt folders) → requirements with
   code-checked evidence quotes → priced draft (see "Tender documentation").
-  ⬜ Tender extraction metrics against the gold markup.
+  ✅ Tender extraction metrics against hand-checked gold markup, one tender,
+  two free models (see "Evaluation").
+  ⬜ Extraction section by section (one call per part of the document, then
+  the deterministic merge) to raise recall — the main weakness at ~40%.
+  ⬜ Gold markup for the two other tenders (`ipu_ran`, `tashkent_bank`).
+  ⬜ LLM-as-a-Judge for matching and gaps, calibrated against the manual
+  markup before its numbers are trusted.
+  ⬜ Pilot with the client on a local model (client documents never go to a
+  cloud API).
   ⬜ RAG over `data/knowledge/` (Qdrant) so pricing/service lookups aren't a
   flat JSON table.
 

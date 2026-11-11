@@ -14,7 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from tender.eval import (Item, Locator, Span, closeness, closeness_label, coverage, evaluate_run, match,
                          spans_overlap, stems)
-from tender.eval_report import ModelRuns, render
+from tender.eval_report import ModelRuns, closeness_table, render, section_recall_table
 from tender.gold_notes import convert
 from tender.loader import TenderDocument
 from tender.models import Evidence, TenderRequirements
@@ -153,6 +153,27 @@ def test_unverified_quotes_get_closeness_diagnostics_but_metric_stays_strict():
     assert result.metrics["groundedness"]["num"] == result.metrics["groundedness"]["den"] - 1
 
 
+def test_section_recall_and_closeness_tables():
+    # model-a: the sample answer finds all 3 gold lines (one per section), 2 runs.
+    # model-b: its only quote for "удостоверения" is a typo -> unconfirmed -> that line is not found.
+    data = sample()
+    data["requirements"][0]["evidence"] = ev("Работники Исполнителя должны иметь удостоверения промышленого альпиниста")
+    models = [
+        ModelRuns("model-a", [evaluate_run(model(), GOLD, DOCS)] * 2, [{}, {}]),
+        ModelRuns("model-b", [evaluate_run(TenderRequirements.model_validate(data), GOLD, DOCS)], [{}]),
+    ]
+    sections = section_recall_table(models)
+    assert sections[0] == "| Раздел gold | Строк | model-a | model-b | Все прогоны (3) |"
+    assert "| Требования к персоналу и допускам | 1 | 100% (2/2) | 0% (0/1) | 67% (2/3) |" in sections
+    assert "| Ответственность и штрафы | 1 | 100% (2/2) | 100% (1/1) | 100% (3/3) |" in sections
+
+    closeness_rows = closeness_table(models)
+    assert "| model-a | 0 | — | — | — | — |" in closeness_rows
+    b_row = next(r for r in closeness_rows if r.startswith("| model-b |"))
+    assert b_row.startswith("| model-b | 1 |") and b_row.endswith("| 1 | 0 | 0 |")
+    assert closeness_rows[-1].startswith("| Все прогоны (3) | 1 |")
+
+
 def test_report_compares_models_and_shows_time_tokens_and_diagnostics():
     data = sample()
     data["requirements"][0]["evidence"] = ev("Работники Исполнителя должны иметь удостоверения промышленого альпиниста")
@@ -177,4 +198,5 @@ def test_report_compares_models_and_shows_time_tokens_and_diagnostics():
     assert "| Время на прогон, с | 200 (100–300) | 300 |" in text
     assert "| Неудачных прогонов | 0 | 1 |" in text
     assert "## Модель: model-a" in text and "### Пропущено моделью" in text and "### Лишнее у модели" in text
+    assert "## Recall по разделам gold" in text and "## Близость неподтверждённых цитат к тексту" in text
     assert "почти дословно" in text

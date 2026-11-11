@@ -86,6 +86,48 @@ def comparison_table(models: list[ModelRuns]) -> list[str]:
     return lines
 
 
+def section_recall_table(models: list[ModelRuns]) -> list[str]:
+    """Main recall per gold section: found / (lines × runs), per model and
+    over all runs of all models."""
+    sections: dict[str, int] = {}
+    for found in models[0].runs[0].requirements:
+        section = found.gold.extra.get("section") or "—"
+        sections[section] = sections.get(section, 0) + 1
+
+    def share(runs: list[RunEval], section: str) -> tuple[int, int]:
+        hits = sum(1 for r in runs for f in r.requirements if f.how and (f.gold.extra.get("section") or "—") == section)
+        return hits, sections[section] * len(runs)
+
+    all_runs = [r for m in models for r in m.runs]
+    lines = ["| Раздел gold | Строк | " + " | ".join(m.model for m in models) + f" | Все прогоны ({len(all_runs)}) |",
+             "|---|---|" + "---|" * (len(models) + 1)]
+    for section, count in sections.items():
+        cells = []
+        for runs in [m.runs for m in models] + [all_runs]:
+            hits, den = share(runs, section)
+            cells.append(f"{hits / den:.0%} ({hits}/{den})")
+        lines.append(f"| {section} | {count} | " + " | ".join(cells) + " |")
+    return lines
+
+
+def closeness_table(models: list[ModelRuns]) -> list[str]:
+    """How close unconfirmed quotes are to the document text (diagnostics)."""
+    def row(label: str, runs: list[RunEval]) -> str:
+        sims = [u["similarity"] for r in runs for u in r.unverified]
+        if not sims:
+            return f"| {label} | 0 | — | — | — | — |"
+        near = sum(1 for s in sims if s >= 0.9)
+        mid = sum(1 for s in sims if 0.6 <= s < 0.9)
+        far = sum(1 for s in sims if s < 0.6)
+        return f"| {label} | {len(sims)} | {min(sims):.0%} | {near} | {mid} | {far} |"
+
+    all_runs = [r for m in models for r in m.runs]
+    return ["| Модель | Неподтверждённых цитат | Минимальная близость | ≥90% (почти дословно) | 60–90% | <60% |",
+            "|---|---|---|---|---|---|",
+            *(row(m.model, m.runs) for m in models),
+            row(f"Все прогоны ({len(all_runs)})", all_runs)]
+
+
 RULE_FIX_ROWS = ["recall", "recall_strict", "precision", "flags"]
 
 
@@ -228,6 +270,19 @@ def render(tender_id: str, header: dict, gold: dict, models: list[ModelRuns]) ->
         "Сопоставление без LLM: по пересечению цитат в тексте документа (≥50% более короткой), "
         "иначе по тексту (основы слов, покрытие ≥60%). Gaps — только по тексту, оценка приблизительная. "
         "В recall засчитываются только факты модели с подтверждённой цитатой.",
+        "",
+        "## Recall по разделам gold",
+        "",
+        "Основной recall: найдено строк раздела / (строк × прогонов).",
+        "",
+        *section_recall_table(models),
+        "",
+        "## Близость неподтверждённых цитат к тексту",
+        "",
+        "Диагностика, в метрики не входит. Близость — лучшее посимвольное совпадение с фрагментом документа "
+        "той же длины; подробности по каждой цитате — в разделах моделей.",
+        "",
+        *closeness_table(models),
         "",
     ]
     if any(m.runs_before_fix for m in models):
