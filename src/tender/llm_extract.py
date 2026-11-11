@@ -382,9 +382,22 @@ def openai_call(messages: list[dict], schema: dict) -> str:
             model=model, messages=messages, temperature=0, response_format={"type": "json_object"},
         )
 
-    usage = getattr(response, "usage", None)
-    LAST_USAGE["calls"] = LAST_USAGE.get("calls", 0) + 1
-    if usage is not None:
-        LAST_USAGE["prompt_tokens"] = LAST_USAGE.get("prompt_tokens", 0) + (usage.prompt_tokens or 0)
-        LAST_USAGE["completion_tokens"] = LAST_USAGE.get("completion_tokens", 0) + (usage.completion_tokens or 0)
+    _record_usage(response)
     return response.choices[0].message.content
+
+
+def _record_usage(response) -> None:
+    """Adds one call to LAST_USAGE: tokens, reasoning tokens (when the
+    provider reports them) and finish_reason -- "length" means the answer
+    was cut by the output limit, not that the model chose to stop."""
+    LAST_USAGE["calls"] = LAST_USAGE.get("calls", 0) + 1
+    LAST_USAGE.setdefault("finish_reasons", []).append(getattr(response.choices[0], "finish_reason", None))
+    usage = getattr(response, "usage", None)
+    if usage is None:
+        return
+    LAST_USAGE["prompt_tokens"] = LAST_USAGE.get("prompt_tokens", 0) + (usage.prompt_tokens or 0)
+    LAST_USAGE["completion_tokens"] = LAST_USAGE.get("completion_tokens", 0) + (usage.completion_tokens or 0)
+    details = getattr(usage, "completion_tokens_details", None)
+    reasoning = getattr(details, "reasoning_tokens", None) if details is not None else None
+    if reasoning is not None:
+        LAST_USAGE["reasoning_tokens"] = LAST_USAGE.get("reasoning_tokens", 0) + reasoning

@@ -65,6 +65,21 @@ def test_docx_keeps_table_in_document_order_and_merged_cells_once(tmp_path):
     ]
 
 
+def test_paragraphs_inside_a_table_cell_stay_on_separate_lines(tmp_path):
+    doc = Document()
+    table = doc.add_table(rows=1, cols=2)
+    label, body = table.rows[0].cells
+    label.text = "Требования"
+    body.text = "1.1. Работы выполняются альпинистами."
+    body.add_paragraph("")
+    body.add_paragraph("1.2. Работы   в дневное время.")
+    doc.save(tmp_path / "tz.docx")
+    assert load_document(tmp_path / "tz.docx").splitlines() == [
+        "Требования | 1.1. Работы выполняются альпинистами.",
+        "1.2. Работы в дневное время.",
+    ]
+
+
 def test_pdf_with_text_layer(tmp_path):
     assert "Facade area 10740 m2" in load_document(make_pdf(tmp_path / "a.pdf", "Facade area 10740 m2"))
 

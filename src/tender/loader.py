@@ -68,7 +68,9 @@ def _read_docx(path: Path) -> str:
     """Body in document order: python-docx's doc.paragraphs / doc.tables
     would put every table after all paragraphs, detaching e.g. a volumes
     table from its heading. Merged cells are emitted once, not per grid
-    column."""
+    column. Paragraphs inside a cell stay on separate lines: some ТЗ put the
+    whole numbered text (1.1, 1.2, ...) into one table cell, and gluing it
+    into one line would hide that structure from section-wise processing."""
     from docx import Document
     from docx.table import Table
     from docx.text.paragraph import Paragraph
@@ -88,7 +90,8 @@ def _read_docx(path: Path) -> str:
                         if id(cell._tc) in seen:
                             continue
                         seen.add(id(cell._tc))
-                        cells.append(" ".join(cell.text.split()))
+                        paragraphs = (" ".join(p.text.split()) for p in cell.paragraphs)
+                        cells.append("\n".join(p for p in paragraphs if p))
                     lines.append(" | ".join(cells))
             elif tag == "sdt":
                 content = child.find("{http://schemas.openxmlformats.org/wordprocessingml/2006/main}sdtContent")

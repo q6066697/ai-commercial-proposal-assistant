@@ -47,6 +47,20 @@ def test_whole_tender_in_one_call_with_named_documents():
     assert req.tender.source_docs == ["contract.txt", "tz.txt"]
 
 
+def test_usage_records_finish_reason_and_reasoning_tokens():
+    from types import SimpleNamespace as NS
+    from tender.llm_extract import LAST_USAGE, _record_usage
+
+    LAST_USAGE.clear()
+    _record_usage(NS(choices=[NS(finish_reason="stop")], usage=NS(
+        prompt_tokens=100, completion_tokens=50, completion_tokens_details=NS(reasoning_tokens=30))))
+    _record_usage(NS(choices=[NS(finish_reason="length")], usage=NS(
+        prompt_tokens=100, completion_tokens=70, completion_tokens_details=None)))
+    assert LAST_USAGE == {"calls": 2, "finish_reasons": ["stop", "length"], "prompt_tokens": 200,
+                          "completion_tokens": 120, "reasoning_tokens": 30}
+    LAST_USAGE.clear()
+
+
 def test_invalid_answer_is_retried_once_with_the_errors():
     broken = sample()
     del broken["schedule"]
