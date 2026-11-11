@@ -40,7 +40,7 @@ from tender.models import TenderRequirements  # noqa: E402
 from tender.pipeline import run_tender  # noqa: E402
 
 RATE_LIMIT_WAIT = 60
-RETRY_WAIT_5XX = 30
+RETRY_WAIT_5XX = 60
 
 
 def model_slug(model: str) -> str:

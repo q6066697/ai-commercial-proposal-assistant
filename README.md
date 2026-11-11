@@ -29,9 +29,9 @@ documents.
 ## Evaluation
 
 What is measured: extraction of contractor requirements from real public
-tender documentation — one tender, a technical specification (ТЗ) plus a draft
-contract, facade and window washing of a bank office in Krasnodar
-(`krasnodar_bank`).
+tender documentation — a technical specification (ТЗ) plus a draft contract,
+facade and window washing of a bank office in Krasnodar (`krasnodar_bank`);
+the second prompt was then checked on a held-out tender (`ipu_ran`, below).
 
 **Gold markup:** `data/tenders/gold/krasnodar_bank.json`, v1.1 — 63
 requirements, 2 scope lines, 8 flags, 8 gaps; every quote is checked against
@@ -40,11 +40,11 @@ draft of the gold markup was prepared with AI help; every line was then
 checked by hand against the documents.
 
 **What counts as a requirement** (gold markup and reports): anything that
-binds the contractor or limits the contractor's rights — including
-penalties, liability, the customer's right to refuse the contract, the
-competent court and confidentiality. The customer's own obligations, force
-majeure, the contract's entry into force and notices of reorganization are
-not requirements.
+binds the contractor or limits the contractor's rights, including penalties,
+liability, the customer's right to refuse the contract, the competent court,
+confidentiality, notice periods. The customer's obligations, force majeure,
+the contract's entry into force, notices of reorganization are not
+requirements.
 
 **Matching, no LLM judge:** a model fact matches a gold line if their verbatim
 quotes overlap in the source text (≥50% of the shorter one); fallback — by
@@ -81,7 +81,27 @@ What the numbers show:
   words, English words inside Russian sentences, an extra space, a lost table
   separator. They are still not counted: groundedness stays strict.
 
-Limitations: one tender; free models only; gaps are matched by text only, so
+**Prompt v2 on a held-out tender.** The table above is the first prompt (v1).
+Prompt v2 asks for every contractor obligation, one item per clause. It was
+tuned on `krasnodar_bank` and then checked on `ipu_ran` (window washing for a
+research institute, ТЗ only): the `ipu_ran` gold markup was made before any
+run, and the prompt was frozen at commit `71f35d4`. `nemotron-3.5-super-vl:free`,
+3 runs per cell, mean (min–max)
+([krasnodar_bank report](eval/results/krasnodar_bank.md),
+[ipu_ran report](eval/results/ipu_ran.md)):
+
+| Metric | krasnodar_bank v1 | krasnodar_bank v2 (tuning) | ipu_ran v1 | ipu_ran v2 (held-out) |
+|---|---|---|---|---|
+| Requirement recall (all model facts with a quote) | 38% (32–43%) | 88% (81–97%) | 39% (34–44%) | 90% (86–95%) |
+| Requirement recall, strict (`requirements[]` only) | 21% (17–29%) | 79% (65–87%) | 23% (17–28%) | 83% (73–92%) |
+| Precision of `requirements[]` | 96% (89–100%) | 89% (81–93%) | 91% (91–92%) | 86% (61–98%) |
+
+The recall gain holds on the tender the prompt never saw. The 61% precision
+run on `ipu_ran` listed the normative acts of section 7 one per item (25 of its
+27 extra items), while the gold markup keeps that list as one line — a
+difference in granularity, not invented requirements.
+
+Limitations: two tenders; free models only; gaps are matched by text only, so
 that number is approximate; the matching rule for one-word gold lines was
 fixed after the first run — before/after numbers on the same runs are in the
 report.
@@ -453,9 +473,12 @@ outputs/                   # generated .docx proposals (demo run artifacts)
   code-checked evidence quotes → priced draft (see "Tender documentation").
   ✅ Tender extraction metrics against hand-checked gold markup, one tender,
   two free models (see "Evaluation").
-  ⬜ Extraction section by section (one call per part of the document, then
-  the deterministic merge) to raise recall — the main weakness at ~40%.
-  ⬜ Gold markup for the two other tenders (`ipu_ran`, `tashkent_bank`).
+  ✅ Extraction prompt v2 (exhaustive requirements): recall ~40% → ~90%,
+  confirmed on a held-out tender (`ipu_ran`) with the prompt frozen.
+  ⬜ Prompt v3: a list (e.g. of normative acts) as one requirement, not one
+  item per entry; needs a new held-out tender (`tashkent_bank`) to check.
+  ⬜ Better flags and gaps — v2 did not raise them (flags 33–43%, gaps
+  17–38%).
   ⬜ LLM-as-a-Judge for matching and gaps, calibrated against the manual
   markup before its numbers are trusted.
   ⬜ Pilot with the client on a local model (client documents never go to a
