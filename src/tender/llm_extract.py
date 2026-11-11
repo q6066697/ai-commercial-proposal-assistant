@@ -106,12 +106,44 @@ its own verbatim evidence quote, e.g. «обязательный осмотр о
 """
 
 
+# v2: the same prompt with an exhaustive REQUIREMENTS block. The v1 block
+# asked for "everything" loosely and told the model to skip legal
+# boilerplate, so contract obligations (penalties, liability, the customer's
+# rights, court) were dropped and runs returned 9-26 items where the gold
+# markup has 63. Wording is generic on purpose: krasnodar_bank is the tuning
+# set, the check runs on another tender.
+_REQUIREMENTS_V1 = SYSTEM_PROMPT[SYSTEM_PROMPT.index("REQUIREMENTS:"):SYSTEM_PROMPT.index("COMMERCIAL:")]
+_REQUIREMENTS_V2 = """\
+REQUIREMENTS: list EVERY obligation and condition that affects the
+contractor's risk or cost. One item per clause or sentence of the documents:
+do not merge several clauses into one item, do not summarise, and there is
+no limit on the number of items. Go through every document clause by clause,
+the contract included, not only the technical specification.
+This includes licences, staff admissions and certificates, medical checks,
+equipment, PPE, insurance, site visit, safety, materials, documents,
+schedule constraints and notice periods, the acceptance procedure, payment
+terms, liability for damage, penalties, compensation of losses including
+lost profit, the customer's right to refuse the contract, dispute
+resolution and the competent court, confidentiality.
+Skip only bank details and requisites, signatures, the number of copies of
+the contract and the standard anti-corruption clause.
+A term that also goes into "schedule", "commercial" or "acceptance" is
+listed here as well, with its own quote.
+Short text; mandatory true/false; cost_impact "high" when it adds real cost
+(scaffolding, waste removal, fencing, certification, insurance), "low" /
+"none" otherwise.
+
+"""
+PROMPTS = {"v1": SYSTEM_PROMPT, "v2": SYSTEM_PROMPT.replace(_REQUIREMENTS_V1, _REQUIREMENTS_V2)}
+STRATEGIES = tuple(PROMPTS)
+
+
 def _services_block() -> str:
     services = load_price_list()["services"].values()
     return "\n".join(f"- {s['id']} — {s['name']}, {s['unit']}" for s in services)
 
 
-def build_messages(parts: list[tuple[str, str]], note: str = "") -> list[dict]:
+def build_messages(parts: list[tuple[str, str]], note: str = "", strategy: str = "v1") -> list[dict]:
     """parts: (file name, text) -- a whole file or one part of it.
 
     The JSON schema is always spelled out in the prompt too: some
@@ -120,7 +152,7 @@ def build_messages(parts: list[tuple[str, str]], note: str = "") -> list[dict]:
     schema in text the model invents its own structure."""
     blocks = "\n\n".join(f'<document name="{name}">\n{text}\n</document>' for name, text in parts)
     user = (note + "\n\n" if note else "") + blocks
-    system = (SYSTEM_PROMPT.replace("{services}", _services_block())
+    system = (PROMPTS[strategy].replace("{services}", _services_block())
               + "\nJSON schema of the answer (follow it exactly: field names, enums, "
                 "evidence is one object, not a list):\n"
               + json.dumps(llm_response_schema(), ensure_ascii=False))
@@ -337,20 +369,24 @@ def drop_resolved_gaps(req: TenderRequirements) -> None:
 # --- entry point -------------------------------------------------------------
 
 def extract_tender(docs: list[TenderDocument], llm_call: Optional[LLMCall] = None,
-                   max_chars: int = MAX_CHARS) -> TenderRequirements:
+                   max_chars: int = MAX_CHARS, strategy: str = "v1") -> TenderRequirements:
+    """strategy: "v1" (original prompt) or "v2" (exhaustive requirements);
+    see PROMPTS. Kept side by side so the eval can compare them."""
+    if strategy not in PROMPTS:
+        raise ValueError(f"unknown extraction strategy {strategy!r}, expected one of {STRATEGIES}")
     llm_call = llm_call or openai_call
     schema = llm_response_schema()
     LAST_USAGE.clear()
 
     if sum(len(d.text) for d in docs) <= max_chars:
-        result = _parse_with_retry(llm_call, build_messages([(d.name, d.text) for d in docs]), schema)
+        result = _parse_with_retry(llm_call, build_messages([(d.name, d.text) for d in docs], strategy=strategy), schema)
     else:
         chunks = make_chunks(docs, max_chars)
         results = []
         for i, chunk in enumerate(chunks, 1):
             note = (f"Это часть {i} из {len(chunks)} документации одного тендера. "
                     f"Извлеки всё, что есть в этой части; остальные части обработаются отдельно.")
-            results.append(_parse_with_retry(llm_call, build_messages(chunk, note), schema))
+            results.append(_parse_with_retry(llm_call, build_messages(chunk, note, strategy), schema))
         result = merge(results)
 
     result.tender.source_docs = [d.name for d in docs]

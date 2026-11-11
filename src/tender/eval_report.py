@@ -260,6 +260,7 @@ def render(tender_id: str, header: dict, gold: dict, models: list[ModelRuns]) ->
         f"{len(gold['flags'])} флагов, {len(gold['gaps'])} gaps (в метрике {scored_gaps})",
         f"- {gold['_meta'].get('provenance', '')}",
         *([f"- {header['gold_note']}"] if header.get("gold_note") else []),
+        *(f"- **{note}**" for note in header.get("notes") or []),
         "",
         "## Сравнение моделей",
         "",

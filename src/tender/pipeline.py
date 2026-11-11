@@ -39,14 +39,14 @@ def load_requirements_json(path: Path) -> TenderRequirements:
 
 
 def run_tender(folder: Path, out_dir: Path, llm_call: Optional[LLMCall] = None,
-               requirements_path: Optional[Path] = None) -> TenderResult:
+               requirements_path: Optional[Path] = None, strategy: str = "v1") -> TenderResult:
     docs = load_tender(folder)
     if requirements_path:
         req = load_requirements_json(requirements_path)
         req.tender.source_docs = req.tender.source_docs or [d.name for d in docs]
         drop_resolved_gaps(req)
     else:
-        req = extract_tender(docs, llm_call=llm_call)
+        req = extract_tender(docs, llm_call=llm_call, strategy=strategy)
 
     report = ground(req, docs)
     price_list = load_price_list()

@@ -47,6 +47,25 @@ def test_whole_tender_in_one_call_with_named_documents():
     assert req.tender.source_docs == ["contract.txt", "tz.txt"]
 
 
+def test_v2_prompt_differs_from_v1_only_in_the_requirements_block():
+    from tender.llm_extract import PROMPTS
+    v1, v2 = PROMPTS["v1"], PROMPTS["v2"]
+    assert "Skip generic\nlegal boilerplate" in v1 and "boilerplate" not in v2
+    assert "EVERY obligation" in v2 and "no limit on the number of items" in v2
+    assert v1[:v1.index("REQUIREMENTS:")] == v2[:v2.index("REQUIREMENTS:")]
+    assert v1[v1.index("COMMERCIAL:"):] == v2[v2.index("COMMERCIAL:"):]
+
+
+def test_extraction_strategy_selects_the_prompt():
+    llm_v1, llm_v2 = FakeLLM(sample()), FakeLLM(sample())
+    extract_tender(DOCS, llm_call=llm_v1)
+    extract_tender(DOCS, llm_call=llm_v2, strategy="v2")
+    assert "EVERY obligation" not in llm_v1.calls[0][0][0]["content"]
+    assert "EVERY obligation" in llm_v2.calls[0][0][0]["content"]
+    with pytest.raises(ValueError, match="unknown extraction strategy"):
+        extract_tender(DOCS, llm_call=FakeLLM(sample()), strategy="v9")
+
+
 def test_usage_records_finish_reason_and_reasoning_tokens():
     from types import SimpleNamespace as NS
     from tender.llm_extract import LAST_USAGE, _record_usage

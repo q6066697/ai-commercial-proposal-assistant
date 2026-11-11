@@ -59,6 +59,8 @@ def main() -> None:
                              "Uses the LLM (LLM_API_BASE / LLM_API_KEY / LLM_MODEL)")
     parser.add_argument("--requirements", metavar="JSON",
                         help="With --tender: skip the LLM and use this requirements file (e.g. gold markup)")
+    parser.add_argument("--extraction", choices=["v1", "v2"], default="v1",
+                        help="With --tender: extraction prompt (v2 = exhaustive requirements)")
     args = parser.parse_args()
 
     if args.tender:
@@ -66,7 +68,8 @@ def main() -> None:
 
         folder = Path(args.tender)
         result = run_tender(folder, OUTPUTS_DIR / "tenders" / folder.name,
-                            requirements_path=Path(args.requirements) if args.requirements else None)
+                            requirements_path=Path(args.requirements) if args.requirements else None,
+                            strategy=args.extraction)
         print(summary(result))
     elif args.all:
         for path in sorted(DEMO_REQUESTS_DIR.glob("*.txt")):
