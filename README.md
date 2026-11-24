@@ -408,6 +408,124 @@ python src/main.py --tender data/tenders/raw/krasnodar_bank \
   are validated against the schema and their quotes are grounding-checked in
   `tests/test_tender_models.py`. Metrics: see "Evaluation" above.
 
+## API service
+
+The single-request pipeline as an async HTTP service: FastAPI + PostgreSQL
+(SQLAlchemy 2.0, asyncpg, Alembic). It reuses the same extractor, calculator
+and DOCX generator as the CLI and Streamlit, which keep working without a
+database. Extraction is rule-based only for now; **no LLM is involved, and
+the price is always deterministic code.**
+
+| Endpoint | What it does |
+|---|---|
+| `GET /health` | 200, or 503 if the database is unavailable |
+| `POST /requests` | Text → extracted fields, stored; 201. Invalid or impossible values → 422 |
+| `GET /requests/{id}` | Stored request with its positions |
+| `POST /requests/{id}/quote` | Price + DOCX: 201, or 200 with the existing quote. Service not detected → 422 with `clarify_fields`; no document is made |
+| `GET /quotes/{id}/download` | The DOCX draft |
+
+- **Idempotent quotes.** The same request data on the same price list version
+  always returns the same quote, also under parallel calls (row lock + unique
+  constraint). A new price list version makes a new quote; the old one stays.
+  When the calculation *code* changes, increase `CALCULATION_VERSION` in
+  `src/api/service.py`, otherwise old requests keep their old result.
+- **Prices.** `data/price_list.json` is the master; the database holds an
+  immutable copy of every imported version. The import rejects changed prices
+  or rules under an already imported `meta.version`. Importing an older,
+  known version makes it active again. A test checks that quotes priced from
+  the database and from the JSON are identical line by line.
+- **Money.** `NUMERIC(12,2)` in the database, a string in JSON (`"7560.00"`).
+  `total` is `null` for manual estimates and missing data, never 0.
+- **Tables:** `price_list_versions`, `price_list`, `requests`,
+  `request_items`, `quotes` (see `src/db/models.py`).
+- **No authentication yet:** keep it on localhost. Both the API and the
+  database port listen on `127.0.0.1` only.
+
+All commands below are for Windows PowerShell, run from the project folder.
+Docker Desktop must be running.
+
+### First start
+
+```powershell
+# 1. Virtual environment and dependencies
+python -m venv .venv-win
+.\.venv-win\Scripts\python.exe -m pip install -r requirements.txt
+
+# 2. Settings: creates .env with a random database password.
+#    If you already have a .env, add the POSTGRES_* lines from .env.example to it instead.
+if (-not (Test-Path .env)) {
+    (Get-Content .env.example) -replace '^POSTGRES_PASSWORD=$', "POSTGRES_PASSWORD=$([guid]::NewGuid().ToString('N'))" |
+        Set-Content .env -Encoding ascii
+}
+
+# 3. Database
+docker compose up -d --wait
+
+# 4. Migrations and prices
+.\.venv-win\Scripts\alembic.exe upgrade head
+.\.venv-win\Scripts\python.exe scripts\import_price_list.py
+```
+
+PostgreSQL stores the password in its volume on the first start: changing it
+later in `.env` alone breaks the connection. The default port is 5433, so
+that it doesn't clash with another local PostgreSQL (`POSTGRES_PORT`).
+
+### Run
+
+```powershell
+.\.venv-win\Scripts\uvicorn.exe api.main:create_app --factory --app-dir src --port 8001
+```
+
+Interactive documentation: <http://127.0.0.1:8001/docs>. The same from
+PowerShell, in a second window:
+
+```powershell
+$api = 'http://127.0.0.1:8001'
+# ReadAllText, not Get-Content -Raw: PowerShell 5.1 turns the latter into an object in JSON
+$text = [IO.File]::ReadAllText("$PWD\data\demo_requests\facade_cleaning.txt")
+$body = [Text.Encoding]::UTF8.GetBytes((@{ text = $text; client_name = 'Demo' } | ConvertTo-Json))
+$request = Invoke-RestMethod "$api/requests" -Method Post -ContentType 'application/json; charset=utf-8' -Body $body
+$quote = Invoke-RestMethod "$api/requests/$($request.id)/quote" -Method Post
+$quote.total                                                                        # 7560.00
+Invoke-WebRequest "$api$($quote.download_url)" -OutFile "$env:TEMP\kp.docx" -UseBasicParsing
+```
+
+PowerShell 5.1 shows Cyrillic from JSON answers garbled; the data itself is
+correct (use `/docs` to read it).
+
+### After changing prices
+
+```powershell
+# edit data\price_list.json, change meta.version, then:
+.\.venv-win\Scripts\python.exe scripts\import_price_list.py
+```
+
+### Migrations
+
+```powershell
+.\.venv-win\Scripts\alembic.exe current                                 # applied version
+.\.venv-win\Scripts\alembic.exe check                                   # models match the migrations?
+.\.venv-win\Scripts\alembic.exe revision --autogenerate -m "what changed"
+.\.venv-win\Scripts\alembic.exe upgrade head
+```
+
+### Tests
+
+```powershell
+.\.venv-win\Scripts\python.exe -m pytest tests -q        # everything, about 2 minutes
+.\.venv-win\Scripts\python.exe -m pytest tests -q -rs    # with reasons for skipped tests
+```
+
+Database tests create and use a separate database, `<POSTGRES_DB>_test`, and
+refuse any other name. Without Docker they are skipped, the rest still runs.
+
+### Stop
+
+```powershell
+docker compose stop       # data is kept
+docker compose down -v    # deletes the database with all requests and quotes
+```
+
 ## Deployment options
 
 This pipeline can run in three shapes depending on who uses it:
@@ -416,7 +534,7 @@ This pipeline can run in three shapes depending on who uses it:
 |---|---|---|
 | **CLI** (`src/main.py`) | Demo / portfolio use, developer's own machine | Nothing — Python only |
 | **Local UI** (`app.py`, Streamlit) | One person, one computer, no need for remote access | Nothing — runs locally, no server |
-| **Web service** (FastAPI, not in this repo) | Multiple users, remote access, or embedding into another system (Telegram bot, CRM, website form) | A deployed backend (VPS/hosting) + a database instead of the flat JSON price list |
+| **API service** (`src/api/`, FastAPI + PostgreSQL) | Embedding into another system (Telegram bot, CRM, website form); later multiple users and remote access | Docker for the database; runs locally so far. Authentication and hosting are needed before remote access |
 
 ## Project structure
 
@@ -438,8 +556,15 @@ scripts/
 ├── convert_doc.py        # one-off .doc -> .docx via Word
 ├── make_gold_template.py # empty gold markup per tender
 ├── notes_to_gold.py      # gold notes (.md) -> gold JSON, quotes checked
-└── eval_tender.py        # extraction runs + eval report
+├── eval_tender.py        # extraction runs + eval report
+└── import_price_list.py  # price_list.json -> PostgreSQL (API service)
+migrations/               # Alembic (API service)
+docker-compose.yml        # PostgreSQL for the API service
+.env.example              # settings template; .env itself is git-ignored
 src/
+├── api/                  # API service: endpoints, schemas, service logic
+├── db/                   # API service: tables, sessions, price list import
+├── settings.py           # API service settings (.env)
 ├── tender/               # tender track: loader, models, llm_extract,
 │                         # grounding, pricing, proposal, pipeline
 ├── schema.py              # shared Pydantic ExtractedRequest schema
@@ -452,8 +577,12 @@ src/
 app.py                      # local Streamlit UI (no server)
 tests/
 ├── test_pipeline.py       # extraction + calculation checks
-└── test_evaluate.py       # accuracy regression guard
+├── test_evaluate.py       # accuracy regression guard
+├── test_tender_*.py       # tender track
+├── test_api.py            # API service end to end (needs PostgreSQL)
+└── test_db_*.py           # schema, migration, price list import (needs PostgreSQL)
 outputs/                   # generated .docx proposals (demo run artifacts)
+└── quotes/               # proposals of the API service (git-ignored)
 ```
 
 ## Roadmap
@@ -486,6 +615,13 @@ outputs/                   # generated .docx proposals (demo run artifacts)
   ⬜ RAG over `data/knowledge/` (Qdrant) so pricing/service lookups aren't a
   flat JSON table.
 
+- **API service** (a separate track, not tied to the version numbers above)
+  ✅ Step 1: FastAPI + PostgreSQL, versioned price list, idempotent quotes,
+  DOCX download (see "API service").
+  ⬜ Several services in one request (see "Known issues").
+  ⬜ LLM extraction through LiteLLM, with an eval set for single requests.
+  ⬜ Queue (Redis), input from PDF / Excel, Telegram bot.
+
 - **v0.3 — Agent**
   Give the LLM tools instead of a fixed pipeline: `search_knowledge()`,
   `get_service()`, `calculate_price()`, `find_similar_proposal()`,
@@ -495,6 +631,33 @@ outputs/                   # generated .docx proposals (demo run artifacts)
   Deliberately not attempted before the pipeline actually needs
   non-deterministic sequencing — the current parse → extract → validate →
   calculate → generate flow doesn't.
+
+## Known issues
+
+- **The second service in a request is silently lost.** «Мойка фасада 100 м2 и
+  мойка окон 900 м2, высота 10 м, г. Минск» is priced as facade washing only,
+  650 BYN, without a warning. The extractor returns one service per request,
+  so the CLI, Streamlit and the API are all affected (the API's
+  `request_items` table already allows several positions). **Check every
+  request by eye until this is fixed; it is the next step.**
+- **The rule-based extractor misses ordinary wording.** «Нужно помыть фасад
+  офисного здания, площадь 500 м2, высота 25 метров. Минск.» — the service is
+  not recognized («помыть фасад» instead of «мойка фасада»), and the volume
+  is lost with it, because the unit depends on the service. A city without
+  «г.» is not recognized either; the height is. The result is a request for
+  clarification, not a wrong price. This is the case for LLM extraction and
+  an eval set of real requests in the next steps.
+- **Impossible numbers crash the extractor.** A height over 500 m or a floor
+  over 200 raises a validation error, and a very long weight becomes `inf`.
+  The API answers 422; the CLI stops with a traceback.
+- **The calculation works in `float`.** Results are rounded to kopecks and
+  stored as `NUMERIC`; the calculator itself will be moved to `Decimal` later
+  (increase `CALCULATION_VERSION` then).
+- **The DOCX shows technical keys.** The «Основание» column holds paths like
+  `services.facade_washing.rate (рынок)`: useful for the internal review, not
+  for a customer. A separate customer version of the proposal is needed.
+- **The API has no authentication** and no endpoint for editing a request: a
+  correction is a new request.
 
 ## Known limitations of the current demo
 
