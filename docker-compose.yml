@@ -1,0 +1,29 @@
+# API service: database only. The application itself runs locally for now.
+# Values come from the git-ignored .env (see .env.example). Only the variables
+# listed here reach the container, so LLM keys from .env stay out of it.
+name: ai-proposal
+
+services:
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-proposal}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env, see .env.example}
+      POSTGRES_DB: ${POSTGRES_DB:-proposal}
+    ports:
+      # localhost only: not reachable from the network. 5433, not 5432: the
+      # default port is often taken by another local PostgreSQL
+      - "127.0.0.1:${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      # $$ = expanded inside the container, not by compose. -h: over TCP, because
+      # on first start a temporary init server already answers on the socket
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  postgres_data:

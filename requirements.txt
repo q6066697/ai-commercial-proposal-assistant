@@ -7,5 +7,15 @@ pypdf>=5.0.0
 jsonschema>=4.20.0
 # LLM settings from a git-ignored .env (environment variables take priority)
 python-dotenv>=1.0.0
+# API service (FastAPI + PostgreSQL); the CLI and Streamlit don't need these
+fastapi>=0.115
+uvicorn>=0.30
+sqlalchemy[asyncio]>=2.0,<2.1
+asyncpg>=0.30
+alembic>=1.13
+pydantic-settings>=2.6
+# API tests
+pytest-asyncio>=1.0
+httpx>=0.28
 # Optional, only needed for the real LLM extraction path (src/llm_extractor.py):
 # openai>=1.40.0
