@@ -11,15 +11,15 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import dataclass
-from decimal import Decimal
 from pathlib import Path
-from typing import Any, Literal, Optional
+from typing import Any, Literal
 
 from sqlalchemy import select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from db.models import PriceListItem, PriceListVersion
+from db.numbers import to_decimal, to_float
 from price_list import PRICE_LIST_PATH, normalize_price_list
 
 # Service fields with their own column; everything else goes to params
@@ -83,14 +83,6 @@ def content_hash(raw: dict) -> str:
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
-def _decimal(x: Optional[float]) -> Optional[Decimal]:
-    return None if x is None else Decimal(str(x))  # str: 1.1 stays 1.1, not 1.100000000000000088...
-
-
-def _number(x: Optional[Decimal]) -> Optional[float]:
-    return None if x is None else float(x)  # the calculator works in float
-
-
 async def import_price_list(session: AsyncSession, raw: dict) -> ImportResult:
     """Imports and activates a version. Importing the same file again changes
     nothing; importing an older known version makes it active again. Does not
@@ -128,7 +120,7 @@ async def import_price_list(session: AsyncSession, raw: dict) -> ImportResult:
             PriceListItem(
                 code=s["id"], name=s["name"], unit=s["unit"],
                 category=s.get("category"), source=s.get("source"),
-                rate=_decimal(s["rate"]), material_rate=_decimal(s.get("material_rate")),
+                rate=to_decimal(s["rate"]), material_rate=to_decimal(s.get("material_rate")),
                 params={k: v for k, v in s.items() if k not in COLUMN_FIELDS},
             )
             for s in content["services"]
@@ -150,8 +142,8 @@ def to_price_list(version: PriceListVersion) -> dict:
     """Normalized price list for calculate_price(). Needs version.items loaded."""
     services: list[dict[str, Any]] = []
     for item in version.items:
-        service = {"id": item.code, "name": item.name, "unit": item.unit, "rate": _number(item.rate), **item.params}
-        optional = {"category": item.category, "source": item.source, "material_rate": _number(item.material_rate)}
+        service = {"id": item.code, "name": item.name, "unit": item.unit, "rate": to_float(item.rate), **item.params}
+        optional = {"category": item.category, "source": item.source, "material_rate": to_float(item.material_rate)}
         services.append(service | {k: v for k, v in optional.items() if v is not None})
     return normalize_price_list({
         "meta": {"version": version.version, "currency": version.currency, "company": version.company},

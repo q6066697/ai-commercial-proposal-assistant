@@ -23,7 +23,7 @@ from extractor import extract_rule_based
 from price_list import LEGACY_PRICE_LIST_PATH, load_price_list
 from schema import ExtractedRequest
 
-pytestmark = pytest.mark.asyncio
+pytestmark = pytest.mark.asyncio(loop_scope="session")
 
 
 @pytest.fixture
@@ -166,6 +166,34 @@ async def test_no_active_price_list_is_a_clear_error(session_factory):
 async def test_rate_is_stored_exactly(session_factory, raw):
     await do_import(session_factory, changed(raw, rate=1.123456789))
     assert (await active_price_list(session_factory))["services"]["facade_washing"]["rate"] == 1.123456789
+
+
+@pytest.fixture
+def import_script(database, monkeypatch):
+    """scripts/import_price_list.py on the test database."""
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import import_price_list as script
+
+    monkeypatch.setattr(script, "get_settings", lambda: database)
+
+    async def run(*args):
+        monkeypatch.setattr(sys, "argv", ["import_price_list.py", *map(str, args)])
+        await asyncio.to_thread(script.main)  # it starts its own event loop
+
+    return run
+
+
+async def test_import_script(session_factory, import_script, raw, tmp_path, capsys):
+    await import_script()
+    assert "импортирован и активен" in capsys.readouterr().out
+    await import_script()
+    assert "изменений нет" in capsys.readouterr().out
+
+    path = tmp_path / "changed.json"
+    path.write_text(json.dumps(changed(raw), ensure_ascii=False), encoding="utf-8")
+    with pytest.raises(SystemExit, match="meta.version"):
+        await import_script(path)
+    assert await versions(session_factory) == [(raw["meta"]["version"], True)]
 
 
 async def test_hash_ignores_notes_that_do_not_affect_prices(raw):

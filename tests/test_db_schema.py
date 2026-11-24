@@ -13,7 +13,7 @@ from sqlalchemy.exc import IntegrityError
 
 from db.models import PriceListVersion, Quote, Request, RequestItem
 
-pytestmark = pytest.mark.asyncio
+pytestmark = pytest.mark.asyncio(loop_scope="session")
 
 
 def version(**kw):
@@ -47,6 +47,7 @@ async def test_downgrade_removes_everything_and_upgrade_restores(engine):
         await c.run_sync(migrate)
         after_upgrade = await c.scalar(count)
         await c.commit()
+    await engine.dispose()  # pooled connections remember statements on the dropped tables
     assert (after_downgrade, after_upgrade) == (0, 5)
 
 

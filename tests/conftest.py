@@ -6,11 +6,11 @@ never the working one. If the server is not running, these tests are skipped
 with the reason shown; all other tests don't touch the database at all.
 Anything else (wrong password, broken migration) is a failure, not a skip.
 """
-import asyncio
 import sys
 from pathlib import Path
 
 import pytest
+import pytest_asyncio
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
@@ -73,8 +73,8 @@ async def _prepare(settings) -> None:
         await engine.dispose()
 
 
-@pytest.fixture(scope="session")
-def database():
+@pytest_asyncio.fixture(scope="session", loop_scope="session")
+async def database():
     """Settings of a freshly migrated test database."""
     from pydantic import ValidationError
 
@@ -83,31 +83,34 @@ def database():
     except ValidationError:
         pytest.skip("POSTGRES_PASSWORD is not set (see .env.example)")
     try:
-        asyncio.run(_prepare(settings))
+        await _prepare(settings)
     except (ConnectionError, TimeoutError) as e:
         pytest.skip(f"PostgreSQL is not running on {settings.postgres_host}:{settings.postgres_port}: "
                     f"docker compose up -d --wait ({type(e).__name__})")
     return settings
 
 
-@pytest.fixture
-def engine(database):
-    """Empty tables for every test. NullPool: each test has its own event loop
-    and connections can't move between loops."""
-    from sqlalchemy.pool import NullPool
-
-    from db.models import Base
+@pytest_asyncio.fixture(scope="session", loop_scope="session")
+async def shared_engine(database):
+    """One pool and one event loop for the whole run: a connection to Docker on
+    Windows costs ~0.3 s. Tests using it need asyncio(loop_scope="session")."""
     from db.session import make_engine
 
-    engine = make_engine(database, poolclass=NullPool)
+    # Faster commits; a test database doesn't need to survive a power cut
+    engine = make_engine(database, connect_args={"server_settings": {"synchronous_commit": "off"}})
+    yield engine
+    await engine.dispose()
 
-    async def clear():  # DELETE: much faster than TRUNCATE on a few rows
-        async with engine.begin() as c:
-            for table in reversed(Base.metadata.sorted_tables):
-                await c.execute(table.delete())
 
-    asyncio.run(clear())
-    return engine
+@pytest_asyncio.fixture(loop_scope="session")
+async def engine(shared_engine):
+    """Empty tables for every test."""
+    from db.models import Base
+
+    async with shared_engine.begin() as c:
+        for table in reversed(Base.metadata.sorted_tables):
+            await c.execute(table.delete())
+    return shared_engine
 
 
 @pytest.fixture

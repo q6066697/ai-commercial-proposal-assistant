@@ -7,7 +7,8 @@ from settings import Settings
 
 
 def make_engine(settings: Settings, **kwargs) -> AsyncEngine:
-    return create_async_engine(settings.database_url, pool_pre_ping=True, **kwargs)
+    # hide_parameters: customer texts don't end up in logs with an SQL error
+    return create_async_engine(settings.database_url, pool_pre_ping=True, hide_parameters=True, **kwargs)
 
 
 def make_session_factory(engine: AsyncEngine) -> async_sessionmaker[AsyncSession]:

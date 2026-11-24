@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from datetime import date
 from pathlib import Path
+from typing import Optional
 
 from docx import Document
 from docx.shared import Pt, Cm
@@ -67,6 +68,7 @@ def generate_proposal_docx(
     breakdown: PriceBreakdown,
     output_path: Path,
     proposal_number: str = "DEMO-0001",
+    proposal_date: Optional[date] = None,  # None = today
 ) -> Path:
     doc = Document()
 
@@ -82,7 +84,7 @@ def generate_proposal_docx(
 
     meta = doc.add_paragraph()
     meta.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    meta.add_run(f"№ {proposal_number} от {date.today().strftime('%d.%m.%Y')}")
+    meta.add_run(f"№ {proposal_number} от {(proposal_date or date.today()).strftime('%d.%m.%Y')}")
 
     doc.add_paragraph()
     doc.add_paragraph(f"Исполнитель: {breakdown.company or COMPANY_NAME}")
